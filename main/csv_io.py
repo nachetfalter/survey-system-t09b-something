@@ -15,7 +15,7 @@ def csv_write(data, f_name):
         writer = DictWriter(csv_f, fieldnames=col_name)
         for i in data:
             writer.writerow(i)
-
+        csv_f.close()
 
 def csv_append(data, f_name):
     col_name = get_col_name(f_name)
@@ -26,6 +26,7 @@ def csv_append(data, f_name):
     with open(f_name, 'a+') as csv_f:
         writer = DictWriter(csv_f, fieldnames=col_name)
         writer.writerow(data)
+        csv_f.close()
 
 
 def csv_read(f_name):
@@ -39,6 +40,7 @@ def csv_read(f_name):
         reader = DictReader(csv_f, fieldnames=col_name)
         for row in reader:
             r_data.append(row)
+        csv_f.close()
         return r_data
 
 
@@ -49,7 +51,7 @@ def get_col_name(f_name):
 
 class Base:
     @classmethod
-    def get_col(cls, f_name):
+    def getkey(cls, f_name):
         col_name = get_col_name(f_name)
         return col_name
 
@@ -70,7 +72,8 @@ class Base:
     def update(cls, f_name, i_name, inst_id, **kwargs):
         inst = csv_read(f_name)
         inst_id_li = [str(i.get(i_name)) for i in inst]
-        if inst_id not in inst_id_li:
+        inst_id = str(inst_id)
+        if str(inst_id) not in inst_id_li:
             raise ValueError("Invalid ID")
         else:
             i = inst_id_li.index(inst_id)
@@ -112,16 +115,17 @@ class Base:
 class Survey(Base):
     
     @staticmethod
-    def get_col():
+    def getkey():
         return super(Survey, Survey).\
-            get_col("survey.csv")
+            getkey("survey.csv")
 
     @staticmethod
     def load(survey_id=None):
         if survey_id == None:
             return super(Survey, Survey).\
-                load("survey.csv", "surv_ID", str(survey_id))
+                load("survey.csv", "surv_ID", survey_id)
         else:
+            dict = {}
             dict = super(Survey, Survey).\
                 load("survey.csv", "surv_ID", str(survey_id))
             dict['ques_ID'] = dict.get("ques_ID").split("/")
@@ -136,8 +140,10 @@ class Survey(Base):
     @staticmethod
     def append(data):
         data['ques_ID'] = '/'.join(data.get("ques_ID"))
+        buff = ''
         buff = data['ques_ID']
-        data['surv_ID'] = str(data['surv_ID'])   
+        data['surv_ID'] = str(data['surv_ID'])
+        dict = {}   
         dict = super(Survey, Survey).\
             append("survey.csv", "surv_ID", data)
         Result.append({'surv_ID': dict.get('surv_ID'),'ques_ID': buff,'result': ''})
@@ -152,13 +158,14 @@ class Survey(Base):
 class Question(Base):
     
     @staticmethod
-    def get_col(choi_num):
-        col = super(Question, Question).\
-            get_col("question.csv")
+    def getkey(choi_num):
+        col = []
+        col.extend(super(Question, Question).\
+            getkey("question.csv"))
         col.pop()
         i = 1
         while i <= choi_num:
-            col.append(' '.join(['choice',str(i)]))
+            col.append("".join(['choice_',str(i)]))
             i += 1
         return col
 
@@ -166,15 +173,16 @@ class Question(Base):
     def load(ques_id=None):
         if ques_id == None:
             return super(Question, Question).\
-                load("question.csv", "ques_ID", str(ques_id))
+                load("question.csv", "ques_ID", ques_id)
         else:
+            dict = {}
             dict = super(Question, Question).\
                 load("question.csv", "ques_ID", str(ques_id))               
             i = 1
             choice = {}
             buf = []           
             for j in list(dict.get("choi_content").split("/")):
-                buf = ' '.join(['choice',str(i)])
+                buf = "".join(['choice_',str(i)])
                 choice[buf] = j
                 i += 1
             dict.pop('choi_content')
@@ -188,7 +196,7 @@ class Question(Base):
         choice = []
         remove = []
         while j - 1 < len(kwargs) - 3:
-            buf = ' '.join(['choice',str(j)])
+            buf = "".join(['choice_',str(j)])
             choice.append(str(kwargs.get(buf)))
             remove.append(buf)
             j += 1
@@ -205,8 +213,9 @@ class Question(Base):
         j = 1
         choice = []
         remove = []
+        buf = ""
         while j - 1 < len(data) - 3:
-            buf = ' '.join(['choice',str(j)])
+            buf = "".join(['choice_',str(j)])
             choice.append(str(data.get(buf)))
             remove.append(buf)
             j += 1
@@ -226,12 +235,13 @@ class Question(Base):
 class Result(Base):
 
     @staticmethod
-    def get_col():
+    def getkey():
         return super(Result, Result).\
-            get_col("result.csv")
+            getkey("result.csv")
 
     @staticmethod
     def load(survey_id=None):
+        dict = {}
         dict = super(Result, Result).\
             load("result.csv", "surv_ID", str(survey_id))
         dict['ques_ID'] = dict.get("ques_ID").split("/")
@@ -240,7 +250,9 @@ class Result(Base):
 
     @staticmethod
     def update(survey_id=None):
-        dl = Answer.load(1,None)       
+        dl = []
+        dl = Answer.load(1,None)
+        buff = []       
         buff = [0]*len(dl[0].get('answer').split("/"))
         temp = []
         k = 0     
@@ -254,6 +266,7 @@ class Result(Base):
         while i < len(dl[0].get('answer').split("/")): 
             buff[i] = str(buff[i])
             i += 1
+        dict = {}
         dict = {'result':''}
         dict['result'] = "/".join(buff)           
         return super(Result, Result).\
@@ -274,9 +287,9 @@ class Result(Base):
 class Admin(Base):
 
     @staticmethod
-    def get_col():
+    def getkey():
         return super(Admin, Admin).\
-            get_col("admin.csv")
+            getkey("admin.csv")
 
     @staticmethod
     def load(user_id=None):
@@ -302,9 +315,9 @@ class Admin(Base):
 class Res(Base):
 
     @staticmethod
-    def get_col():
+    def getkey():
         return super(Res, Res).\
-            get_col("res.csv")
+            getkey("res.csv")
 
     @staticmethod
     def load(user_id=None):
@@ -329,9 +342,10 @@ class Res(Base):
 class Answer(Base):
     
     @staticmethod
-    def get_col():
-        list = super(Answer, Answer).\
-            get_col("answer.csv")
+    def getkey():
+        list = []
+        list.extend(super(Answer, Answer).\
+            getkey("answer.csv"))
         list[0] = "survey_ID"
         list.insert(0,"user_ID")
         return list
@@ -342,17 +356,20 @@ class Answer(Base):
             answer = []
             answer = csv_read("answer.csv")
             result = []
+            i = 0
             for i in answer:
                if (i.get('s/u_ID').split("/"))[0] == str(survey_id):
                     result.append(i)
             return result
         else:
+            id = ""
             id = '/'.join([str(survey_id),str(user_id)])
             return  super(Answer, Answer).\
                 load("answer.csv", "s/u_ID", id)
 
     @staticmethod
     def update(survey_id=None, user_id=None, **kwargs):
+        id = ""
         id = '/'.join([str(survey_id),str(user_id)])
         kwargs.pop('user_ID')
         kwargs.pop('survey_ID')
@@ -370,27 +387,29 @@ class Answer(Base):
         dict['answer'] = "/".join(data.get('answer'))
         dict['s/u_ID'] = "/".join([str(data.get('user_ID')),str(data.get('survey_ID'))])
         with open("answer.csv", 'a') as csv_f:
-            writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).get_col("answer.csv"))
+            writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
             writer.writerow(dict)
         
 
     @staticmethod
     def delete(survey_id=None, user_id = None):
         if user_id == None:
+            foo = {}
             foo = {'s/u_ID':[],'ques_ID':[],'answer':[]}  
             answer = []
-            answer = csv_read("answer.csv")
+            answer.extend(csv_read("answer.csv"))
             with open("answer.csv", 'w') as csv_f:
               for i in answer:
                   if (i.get('s/u_ID').split("/"))[0] == str(survey_id):
                     foo['s/u_ID'] = "-1"           
                   else:
-                    for j in super(Answer, Answer).get_col("answer.csv"):
+                    for j in super(Answer, Answer).getkey("answer.csv"):
                         foo[j] = i.get(j)          
                   if foo.get('s/u_ID') != "-1":
-                    writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).get_col("answer.csv"))
+                    writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
                     writer.writerow(foo)
         else:
             id = '/'.join([str(survey_id),str(user_id)])
             return super(Answer, Answer).\
                 delete("answer.csv", "s/u_ID", id)
+
