@@ -330,7 +330,7 @@ class Res(Base):
             load("res.csv", "user_ID", str(user_id))
 
     @staticmethod
-    def update(user_id=None, data):
+    def update(data):
         user_id = ""        
         user_id = data.get("user_ID")
         return super(Res, Res).\
