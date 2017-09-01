@@ -1,16 +1,16 @@
-#CSV_io.py
-#Author: Victor Wang
+# Tile: CSV_io.py
+# Author: Victor Wang
 
-from csv_glossary import table
 from csv import DictReader, DictWriter
-
+from .csv_glossary import table
 
 def csv_write(data, f_name):
     col_name = get_col_name(f_name)
     try:
-        file = open(f_name, 'r')
+        f = open(f_name, 'r')
+        f.close()
     except IOError:
-        file = open(f_name, 'w')
+        f = open(f_name, 'w')
     with open(f_name, 'w+') as csv_f:
         writer = DictWriter(csv_f, fieldnames=col_name)
         for i in data:
@@ -20,20 +20,21 @@ def csv_write(data, f_name):
 def csv_append(data, f_name):
     col_name = get_col_name(f_name)
     try:
-        file = open(f_name, 'r')
+        f = open(f_name, 'r')
+        f.close()
     except IOError:
-        file = open(f_name, 'w')
+        f = open(f_name, 'w')
     with open(f_name, 'a+') as csv_f:
         writer = DictWriter(csv_f, fieldnames=col_name)
         writer.writerow(data)
         csv_f.close()
-
 
 def csv_read(f_name):
     col_name = get_col_name(f_name)
     r_data = []
     try:
         file = open(f_name, 'r')
+        file.close()
     except IOError:
         file = open(f_name, 'w')
     with open(f_name, 'r+') as csv_f:
@@ -42,7 +43,6 @@ def csv_read(f_name):
             r_data.append(row)
         csv_f.close()
         return r_data
-
 
 def get_col_name(f_name):
     # some more processing
@@ -69,18 +69,18 @@ class Base:
             return inst
 
     @classmethod
-    def update(cls, f_name, i_name, inst_id, **kwargs):
+    def update(cls, f_name, i_name, inst_id, data):
         inst = csv_read(f_name)
         inst_id_li = [str(i.get(i_name)) for i in inst]
         inst_id = str(inst_id)
         if str(inst_id) not in inst_id_li:
-            raise ValueError("Invalid ID")
+            raise IndexError("Invalid ID")
         else:
             i = inst_id_li.index(inst_id)
             d = inst[i]
-            for key in kwargs:
+            for key in data:
                 if key in list(d.keys()):
-                    d.update({key: kwargs[key]})
+                    d.update({key: data[key]})
                 else:
                     raise KeyError("Invalid Key")
         csv_write(inst, f_name)
@@ -92,7 +92,7 @@ class Base:
         if type(data) is not dict:
             raise TypeError("Dictionary Required")
         new_inst_id = max(inst_id_li, default=0)+1
-        if set(list(data.keys())) == set(get_col_name(f_name)):
+        if set(list(data.keys())) == set(Base.getkey(f_name)):
             data.update({i_name: new_inst_id})
             csv_append(data, f_name)
         else:
@@ -101,11 +101,10 @@ class Base:
 
     @classmethod
     def delete(cls, f_name, i_name, inst_id):
-        inst = csv_read(f_name)        
+        inst = csv_read(f_name)
         inst_id_li = [str(i.get(i_name)) for i in inst]
         if inst_id not in inst_id_li:
-            # raise ValueError("Invalid ID")
-            pass
+            raise IndexError("Invalid ID")
         else:
             i = inst_id_li.index(inst_id)
             inst.pop(i)
@@ -113,7 +112,7 @@ class Base:
 
 
 class Survey(Base):
-    
+
     @staticmethod
     def getkey():
         return super(Survey, Survey).\
@@ -123,19 +122,21 @@ class Survey(Base):
     def load(survey_id=None):
         if survey_id == None:
             return super(Survey, Survey).\
-                load("survey.csv", "surv_ID", survey_id)
+                load("survey.csv", "surv_ID", None)
         else:
-            dict = {}
-            dict = super(Survey, Survey).\
+            dic = {}
+            dic = super(Survey, Survey).\
                 load("survey.csv", "surv_ID", str(survey_id))
-            dict['ques_ID'] = dict.get("ques_ID").split("/")
+            dic['ques_ID'] = dic.get("ques_ID").split("/")
             return dict
 
     @staticmethod
-    def update(survey_id=None, **kwargs):
-        kwargs['ques_ID'] = '/'.join(kwargs.get("ques_ID"))   
+    def update(data):
+        survey_id = ""
+        survey_id = data.get("surv_ID")
+        data['ques_ID'] = '/'.join(data.get("ques_ID"))
         return super(Survey, Survey).\
-            update("survey.csv", "surv_ID", str(survey_id), **kwargs)
+            update("survey.csv", "surv_ID", str(survey_id), data)
 
     @staticmethod
     def append(data):
@@ -143,10 +144,10 @@ class Survey(Base):
         buff = ''
         buff = data['ques_ID']
         data['surv_ID'] = str(data['surv_ID'])
-        dict = {}   
-        dict = super(Survey, Survey).\
+        dic = {}
+        dic = super(Survey, Survey).\
             append("survey.csv", "surv_ID", data)
-        Result.append({'surv_ID': dict.get('surv_ID'),'ques_ID': buff,'result': ''})
+        Result.append({'surv_ID': dic.get('surv_ID'),'ques_ID': buff,'result': ''})
 
     @staticmethod
     def delete(survey_id=None):
@@ -156,7 +157,7 @@ class Survey(Base):
 
 
 class Question(Base):
-    
+
     @staticmethod
     def getkey(choi_num):
         col = []
@@ -175,38 +176,39 @@ class Question(Base):
             return super(Question, Question).\
                 load("question.csv", "ques_ID", ques_id)
         else:
-            dict = {}
-            dict = super(Question, Question).\
-                load("question.csv", "ques_ID", str(ques_id))               
+            dic = {}
+            dic = super(Question, Question).\
+                load("question.csv", "ques_ID", str(ques_id))
             i = 1
             choice = {}
-            buf = []           
-            for j in list(dict.get("choi_content").split("/")):
+            buf = []
+            for j in list(dic.get("choi_content").split("/")):
                 buf = "".join(['choice_',str(i)])
                 choice[buf] = j
                 i += 1
-            dict.pop('choi_content')
-            dict.update(choice)   
-            return dict
-                
+            dic.pop('choi_content')
+            dic.update(choice)
+            return dic
 
     @staticmethod
-    def update(ques_id=None, **kwargs):
+    def update(data):
+        ques_id = ""
+        ques_id = data.get("ques_ID")
         j = 1
         choice = []
         remove = []
-        while j - 1 < len(kwargs) - 3:
-            buf = "".join(['choice_',str(j)])
-            choice.append(str(kwargs.get(buf)))
+        while j - 1 < len(data) - 3:
+            buf = 'choice_' + str(j)
+            choice.append(str(data.get(buf)))
             remove.append(buf)
             j += 1
-        i = 0     
-        while i <= len(kwargs) - 2:
-            kwargs.pop(remove[i])
-            i += 1       
-        kwargs['choi_content'] = '/'.join(choice)
+        i = 0
+        while i <= len(data) - 2:
+            data.pop(remove[i])
+            i += 1
+        data['choi_content'] = '/'.join(choice)
         return super(Question, Question).\
-            update("question.csv", "ques_ID", str(ques_id), **kwargs)
+            update("question.csv", "ques_ID", str(ques_id), data)
 
     @staticmethod
     def append(data):
@@ -219,10 +221,10 @@ class Question(Base):
             choice.append(str(data.get(buf)))
             remove.append(buf)
             j += 1
-        i = 0     
+        i = 0
         while i <= len(data) - 2:
             data.pop(remove[i])
-            i += 1       
+            i += 1
         data['choi_content'] = '/'.join(choice)
         return super(Question, Question).\
             append("question.csv", "ques_ID", data)
@@ -231,6 +233,7 @@ class Question(Base):
     def delete(ques_id=None):
         return super(Question, Question).\
             delete("question.csv", "ques_ID", str(ques_id))
+
 
 class Result(Base):
 
@@ -241,37 +244,37 @@ class Result(Base):
 
     @staticmethod
     def load(survey_id=None):
-        dict = {}
-        dict = super(Result, Result).\
+        dic = {}
+        dic = super(Result, Result).\
             load("result.csv", "surv_ID", str(survey_id))
-        dict['ques_ID'] = dict.get("ques_ID").split("/")
-        dict['result'] = dict.get("result").split("/")
+        dic['ques_ID'] = dic.get("ques_ID").split("/")
+        dic['result'] = dic.get("result").split("/")
         return dict
 
     @staticmethod
     def update(survey_id=None):
         dl = []
         dl = Answer.load(1,None)
-        buff = []       
+        buff = []
         buff = [0]*len(dl[0].get('answer').split("/"))
         temp = []
-        k = 0     
+        k = 0
         for a in dl:
             temp = str(a.get('answer')).split("/")
             k = 0
             for j in temp:
                 buff[k] += int(j)
                 k += 1
-        i = 0        
-        while i < len(dl[0].get('answer').split("/")): 
+        i = 0
+        while i < len(dl[0].get('answer').split("/")):
             buff[i] = str(buff[i])
             i += 1
-        dict = {}
-        dict = {'result':''}
-        dict['result'] = "/".join(buff)           
+        dic = {}
+        dic = {'result':''}
+        dic['result'] = "/".join(buff)
         return super(Result, Result).\
             update("result.csv", "surv_ID", str(survey_id), **dict)
-      
+
     @staticmethod
     def append(data):
         return super(Result, Result).\
@@ -297,9 +300,11 @@ class Admin(Base):
             load("admin.csv", "user_ID", str(user_id))
 
     @staticmethod
-    def update(user_id=None, **kwargs):
+    def update(data):
+        user_id = ""
+        user_id = data.get("user_ID")
         return super(Admin, Admin).\
-            update("admin.csv", "user_ID", str(user_id), **kwargs)
+            update("admin.csv", "user_ID", str(user_id), data)
 
     @staticmethod
     def append(data):
@@ -325,9 +330,11 @@ class Res(Base):
             load("res.csv", "user_ID", str(user_id))
 
     @staticmethod
-    def update(user_id=None, **kwargs):
+    def update(user_id=None, data):
+        user_id = ""        
+        user_id = data.get("user_ID")
         return super(Res, Res).\
-            update("res.csv", "user_ID", str(user_id), **kwargs)
+            update("res.csv", "user_ID", str(user_id), data)
 
     @staticmethod
     def append(data):
@@ -339,15 +346,16 @@ class Res(Base):
         return super(Res, Res).\
             delete("res.csv", "user_ID", str(user_id))
 
+
 class Answer(Base):
-    
+
     @staticmethod
     def getkey():
-        list = []
-        list.extend(super(Answer, Answer).\
+        l = []
+        l.extend(super(Answer, Answer).\
             getkey("answer.csv"))
-        list[0] = "survey_ID"
-        list.insert(0,"user_ID")
+        l[0] = "survey_ID"
+        l.insert(0,"user_ID")
         return list
 
     @staticmethod
@@ -362,54 +370,69 @@ class Answer(Base):
                     result.append(i)
             return result
         else:
-            id = ""
-            id = '/'.join([str(survey_id),str(user_id)])
+            iden = ""
+            iden = '/'.join([str(survey_id),str(user_id)])
             return  super(Answer, Answer).\
-                load("answer.csv", "s/u_ID", id)
+                load("answer.csv", "s/u_ID", iden)
 
     @staticmethod
-    def update(survey_id=None, user_id=None, **kwargs):
-        id = ""
-        id = '/'.join([str(survey_id),str(user_id)])
-        kwargs.pop('user_ID')
-        kwargs.pop('survey_ID')
-        kwargs['s/u_ID'] = str(id)
-        kwargs['ques_ID'] = "/".join(kwargs.get('ques_ID'))
-        kwargs['answer'] = "/".join(kwargs.get('answer'))
+    def update(data):
+        survey_id = ""
+        user_id = ""
+        survey_id = data.get("survey_ID")
+        user_id = data.get("user_ID")
+        iden = ""
+        iden = '/'.join([str(survey_id),str(user_id)])
+        data.pop('user_ID')
+        data.pop('survey_ID')
+        data['s/u_ID'] = str(id)
+        data['ques_ID'] = "/".join(data.get('ques_ID'))
+        data['answer'] = "/".join(data.get('answer'))
         super(Answer, Answer).\
-            update("answer.csv", "s/u_ID", str(id), **kwargs)
+            update("answer.csv", "s/u_ID", str(iden), data)
         Result.update(str(survey_id))
 
     @staticmethod
     def append(data):
-        dict = {}
-        dict['ques_ID'] = "/".join(data.get('ques_ID'))
-        dict['answer'] = "/".join(data.get('answer'))
-        dict['s/u_ID'] = "/".join([str(data.get('user_ID')),str(data.get('survey_ID'))])
+        dic = {}
+        dic['ques_ID'] = "/".join(data.get('ques_ID'))
+        dic['answer'] = "/".join(data.get('answer'))
+        dic['s/u_ID'] = "/".join([str(data.get('user_ID')),str(data.get('survey_ID'))])
         with open("answer.csv", 'a') as csv_f:
             writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
-            writer.writerow(dict)
-        
+            writer.writerow(dic)
+
 
     @staticmethod
     def delete(survey_id=None, user_id = None):
         if user_id == None:
-            foo = {}
-            foo = {'s/u_ID':[],'ques_ID':[],'answer':[]}  
+            dummy = {}
+            dummy = {'s/u_ID':[],'ques_ID':[],'answer':[]}
             answer = []
             answer.extend(csv_read("answer.csv"))
             with open("answer.csv", 'w') as csv_f:
-              for i in answer:
-                  if (i.get('s/u_ID').split("/"))[0] == str(survey_id):
-                    foo['s/u_ID'] = "-1"           
-                  else:
-                    for j in super(Answer, Answer).getkey("answer.csv"):
-                        foo[j] = i.get(j)          
-                  if foo.get('s/u_ID') != "-1":
-                    writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
-                    writer.writerow(foo)
+                for i in answer:
+                    if (i.get('s/u_ID').split("/"))[0] == str(survey_id):
+                        dummy['s/u_ID'] = "-1"
+                    else:
+                        for j in super(Answer, Answer).getkey("answer.csv"):
+                            dummy[j] = i.get(j)
+                    if dummy.get('s/u_ID') != "-1":
+                        writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
+                        writer.writerow(dummy)
         else:
             id = '/'.join([str(survey_id),str(user_id)])
             return super(Answer, Answer).\
                 delete("answer.csv", "s/u_ID", id)
+
+
+class Course(Base):
+    @staticmethod
+    def loadlist():
+        li = list()
+        r_li = list()
+        li.extend(super(Course, Course).load("courses.csv", "course_ID", None))
+        for i in li:
+            r_li.append(i.get('course_ID'))
+        return r_li[1:]
 
