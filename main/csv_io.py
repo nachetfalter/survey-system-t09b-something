@@ -128,7 +128,7 @@ class Survey(Base):
             dic = super(Survey, Survey).\
                 load("survey.csv", "surv_ID", str(survey_id))
             dic['ques_ID'] = dic.get("ques_ID").split("/")
-            return dict
+            return dic
 
     @staticmethod
     def update(data):
@@ -243,13 +243,13 @@ class Result(Base):
             getkey("result.csv")
 
     @staticmethod
-    def load(survey_id=None):
+    def load(survey_id):
         dic = {}
         dic = super(Result, Result).\
             load("result.csv", "surv_ID", str(survey_id))
         dic['ques_ID'] = dic.get("ques_ID").split("/")
         dic['result'] = dic.get("result").split("/")
-        return dict
+        return dic
 
     @staticmethod
     def update(survey_id=None):
@@ -273,7 +273,7 @@ class Result(Base):
         dic = {'result':''}
         dic['result'] = "/".join(buff)
         return super(Result, Result).\
-            update("result.csv", "surv_ID", str(survey_id), **dict)
+            update("result.csv", "surv_ID", str(survey_id), **dic)
 
     @staticmethod
     def append(data):
@@ -356,7 +356,7 @@ class Answer(Base):
             getkey("answer.csv"))
         l[0] = "survey_ID"
         l.insert(0,"user_ID")
-        return list
+        return l
 
     @staticmethod
     def load(survey_id=None, user_id=None):
@@ -397,7 +397,7 @@ class Answer(Base):
         dic = {}
         dic['ques_ID'] = "/".join(data.get('ques_ID'))
         dic['answer'] = "/".join(data.get('answer'))
-        dic['s/u_ID'] = "/".join([str(data.get('user_ID')),str(data.get('survey_ID'))])
+        dic['s/u_ID'] = "/".join([str(data.get('survey_ID')),str(data.get('user_ID'))])
         with open("answer.csv", 'a') as csv_f:
             writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
             writer.writerow(dic)
