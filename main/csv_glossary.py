@@ -39,5 +39,6 @@ table = {
     'question.csv': ['ques_ID','quest','choi_num','choi_content'],
     'answer.csv': ['s/u_ID','ques_ID','answer'],
     'admin.csv': ['user_ID','password'],
-    'res.csv': ['user_ID','password']
+    'res.csv': ['user_ID','password'],
+    'courses.csv': ['course_ID']
 }

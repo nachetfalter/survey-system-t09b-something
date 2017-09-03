@@ -3,15 +3,17 @@
 
 from csv import DictReader, DictWriter
 from .csv_glossary import table
+import pathlib
+from pathlib import Path
 
 def csv_write(data, f_name):
     col_name = get_col_name(f_name)
     try:
-        f = open(f_name, 'r')
+        f = open("./csv/"+f_name, 'r')
         f.close()
     except IOError:
-        f = open(f_name, 'w')
-    with open(f_name, 'w+') as csv_f:
+        f = open("./csv/"+f_name, 'w')
+    with open("./csv/"+f_name, 'w+') as csv_f:
         writer = DictWriter(csv_f, fieldnames=col_name)
         for i in data:
             writer.writerow(i)
@@ -20,11 +22,11 @@ def csv_write(data, f_name):
 def csv_append(data, f_name):
     col_name = get_col_name(f_name)
     try:
-        f = open(f_name, 'r')
+        f = open("./csv/"+f_name, 'r')
         f.close()
     except IOError:
-        f = open(f_name, 'w')
-    with open(f_name, 'a+') as csv_f:
+        f = open("./csv/"+f_name, 'w')
+    with open("./csv/"+f_name, 'a+') as csv_f:
         writer = DictWriter(csv_f, fieldnames=col_name)
         writer.writerow(data)
         csv_f.close()
@@ -33,11 +35,11 @@ def csv_read(f_name):
     col_name = get_col_name(f_name)
     r_data = []
     try:
-        file = open(f_name, 'r')
+        file = open("./csv/"+f_name, 'r')
         file.close()
     except IOError:
-        file = open(f_name, 'w')
-    with open(f_name, 'r+') as csv_f:
+        file = open("./csv/"+f_name, 'w')
+    with open("./csv/"+f_name, 'r+') as csv_f:
         reader = DictReader(csv_f, fieldnames=col_name)
         for row in reader:
             r_data.append(row)
@@ -398,7 +400,7 @@ class Answer(Base):
         dic['ques_ID'] = "/".join(data.get('ques_ID'))
         dic['answer'] = "/".join(data.get('answer'))
         dic['s/u_ID'] = "/".join([str(data.get('survey_ID')),str(data.get('user_ID'))])
-        with open("answer.csv", 'a') as csv_f:
+        with open("./csv/"+"answer.csv", 'a') as csv_f:
             writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
             writer.writerow(dic)
 
@@ -410,7 +412,7 @@ class Answer(Base):
             dummy = {'s/u_ID':[],'ques_ID':[],'answer':[]}
             answer = []
             answer.extend(csv_read("answer.csv"))
-            with open("answer.csv", 'w') as csv_f:
+            with open("./csv/"+"answer.csv", 'w') as csv_f:
                 for i in answer:
                     if (i.get('s/u_ID').split("/"))[0] == str(survey_id):
                         dummy['s/u_ID'] = "-1"
