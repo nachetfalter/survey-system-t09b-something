@@ -1,16 +1,13 @@
 {% extends "base.html" %}
-
+{% import "bootstrap/wtf.html" as wtf %}
 {% block content %}
 <body>
    <div class = "container">
 
       <form class = "form-signin">
          <h5> Please sign-in for administrator access</h5>
-         {{ form.csrf_token }}
-         {{ form.zid.label }} {{ form.zid(placeholder="z1234567", class="form-control") }}
-         {{ form.password.label }} {{ form.password(placeholder="********", class="form-control") }}
+         {{ wtf.quick_form(form) }}
          <br />
-         {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
       </form>
 
    </div>

@@ -4,7 +4,9 @@
 {% block title %}test form{% endblock %}
 
 {% block content %}
+<div class = "container">
 <form method="post">
     {{ wtf.quick_form(form) }}
 </form>
+</div>
 {% endblock %}
