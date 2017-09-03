@@ -75,6 +75,8 @@ class Base:
         inst = csv_read(f_name)
         inst_id_li = [str(i.get(i_name)) for i in inst]
         inst_id = str(inst_id)
+        #print(inst_id)
+        #print(inst_id_li)
         if str(inst_id) not in inst_id_li:
             raise IndexError("Invalid ID")
         else:
@@ -149,7 +151,7 @@ class Survey(Base):
         dic = {}
         dic = super(Survey, Survey).\
             append("survey.csv", "surv_ID", data)
-        Result.append({'surv_ID': dic.get('surv_ID'),'ques_ID': buff,'result': ''})
+        Result.append({'surv_ID': dic.get('surv_ID'),'ques_ID': buff,'result': buff})
 
     @staticmethod
     def delete(survey_id=None):
@@ -254,9 +256,9 @@ class Result(Base):
         return dic
 
     @staticmethod
-    def update(survey_id=None):
+    def update(survey_id):
         dl = []
-        dl = Answer.load(1,None)
+        dl = Answer.load(str(survey_id),None)
         buff = []
         buff = [0]*len(dl[0].get('answer').split("/"))
         temp = []
@@ -272,16 +274,17 @@ class Result(Base):
             buff[i] = str(buff[i])
             i += 1
         dic = {}
-        dic = {'result':''}
-        dic['result'] = "/".join(buff)
+        dic = {'surv_ID':str(survey_id),'ques_ID':dl[0].get('ques_ID'),'result':"/".join(buff)}
         return super(Result, Result).\
-            update("result.csv", "surv_ID", str(survey_id), **dic)
+            update("result.csv", "surv_ID", str(survey_id), dic)
 
     @staticmethod
     def append(data):
-        return super(Result, Result).\
-            append("result.csv", "surv_ID", data)
-
+        with open("./csv/"+"result.csv", 'a') as csv_f:
+            writer = DictWriter(csv_f, fieldnames=super(Result, Result).getkey("result.csv"))
+            writer.writerow(data)
+            csv_f.close()
+        
     @staticmethod
     def delete(survey_id=None):
         Answer.delete(str(survey_id),None)
@@ -387,7 +390,7 @@ class Answer(Base):
         iden = '/'.join([str(survey_id),str(user_id)])
         data.pop('user_ID')
         data.pop('survey_ID')
-        data['s/u_ID'] = str(id)
+        data['s/u_ID'] = str(iden)
         data['ques_ID'] = "/".join(data.get('ques_ID'))
         data['answer'] = "/".join(data.get('answer'))
         super(Answer, Answer).\
@@ -396,6 +399,7 @@ class Answer(Base):
 
     @staticmethod
     def append(data):
+        survey_id = ""
         survey_id = data.get("survey_ID")
         dic = {}
         dic['ques_ID'] = "/".join(data.get('ques_ID'))
@@ -404,6 +408,7 @@ class Answer(Base):
         with open("./csv/"+"answer.csv", 'a') as csv_f:
             writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
             writer.writerow(dic)
+            csv_f.close()      
         Result.update(str(survey_id))
 
 
@@ -439,4 +444,5 @@ class Course(Base):
         for i in li:
             r_li.append(i.get('course_ID'))
         return r_li[1:]
+
 
