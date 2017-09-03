@@ -396,6 +396,7 @@ class Answer(Base):
 
     @staticmethod
     def append(data):
+        survey_id = data.get("survey_ID")
         dic = {}
         dic['ques_ID'] = "/".join(data.get('ques_ID'))
         dic['answer'] = "/".join(data.get('answer'))
@@ -403,6 +404,7 @@ class Answer(Base):
         with open("./csv/"+"answer.csv", 'a') as csv_f:
             writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
             writer.writerow(dic)
+        Result.update(str(survey_id))
 
 
     @staticmethod
