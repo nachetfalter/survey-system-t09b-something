@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+<body>
+   <div class = "container">
+
+      <form class = "form-signin">
+         <h5> Please sign-in for administrator access</h5>
+         {{ wtf.quick_form(form) }}
+         <br />
+      </form>
+
+   </div>
+</body>
+{% endblock %}

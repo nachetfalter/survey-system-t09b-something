@@ -1,0 +1,35 @@
+{% extends "baselogin.html" %}
+
+{% block title %}View Survey{% endblock %}
+
+{% block content %}
+
+<div class = "container">
+
+	<h2> View Survey </h2>
+	<h5> ID: {{surv['surv_ID']}} </h5>
+	<h5> Name: {{surv['surv_name']}} </h5>
+	<h5> Course: {{surv['course_ID']}} </h5>
+
+	<div class="list-group">
+		{% for i in ques_list %}
+	  	<a href="#" class="list-group-item">{{i['quest']}}</a>
+	  	{% endfor %}
+	</div>
+
+	<div>
+	    <form action="/admin/surveys/edit" method="POST">
+	        <button type="submit" class = "btn btn-primary" name="survey_id" value = {{surv['surv_ID']}}>Edit</button>
+	    </form>
+		 <br />
+		 <form action="/admin/surveys/delete" method="POST">
+	        <button type="submit" class = "btn btn-primary" name="survey_id" value = {{surv['surv_ID']}}>Delete</button>
+	    </form>
+		 <br />
+		 <form action="#" method="POST">
+	        <button type="submit" class = "btn btn-primary" name="survey_id" value = {{surv['surv_ID']}}>Generate Link</button>
+	    </form>
+	</div>
+</div>
+
+{% endblock %}
