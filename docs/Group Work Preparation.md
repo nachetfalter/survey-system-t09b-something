@@ -1,7 +1,4 @@
-### README
-
-FILE NAME FORMAT: 
-- user-story-_YOUR-NAME_
+### GROUP WORK PREPARATION
 
 SOME USEFUL COMMANDS:
 - `git init`
