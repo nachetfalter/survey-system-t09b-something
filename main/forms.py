@@ -11,65 +11,54 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, \
      SelectField, IntegerField, TextAreaField, RadioField, BooleanField, \
      SelectMultipleField
-from wtforms.validators import Required, Regexp, NumberRange, ValidationError
+from wtforms.validators import DataRequired, Regexp, \
+     NumberRange, ValidationError
 
-from .csv_io import Course, Question
+from .csv_io import Course
 
 
 class login_form(FlaskForm):
-    zid = StringField(u'zID', validators=[Required(), Regexp('^zz[0-9]{7}$')])
-    password = PasswordField(u'Password', validators=[Required()])
+    zid = StringField(u'zID', validators=[DataRequired(),
+                                          Regexp('^z[0-9]{7}$')])
+    password = PasswordField(u'Password', validators=[DataRequired()])
     submit = SubmitField(u'Sign in')
-
-# temporarily unused
-# def select_question_form(**kwargs):
-    # ques = Question.load()
-    # ques_id = list()
-    # ques_name = list()
-    # for q in ques:
-        # ques_id.append(q.get('ques_ID'))
-        # ques_name.append(q.get('quest'))
-    # ques_list = list(zip(ques_id, ques_name))
-    # class smul_f(FlaskForm):
-        # question_list = SelectMultipleField(u'Question List', choices=ques_list)
-    # return smul_f(**kwargs)
 
 
 # TODO raise ValidationError
-class create_survey_form(FlaskForm):
-    ques = Question.load()
-    ques_id = list()
-    ques_name = list()
-    for q in ques:
-        ques_id.append(q.get('ques_ID'))
-        ques_name.append(q.get('quest'))
-    cour_list = Course.loadlist()
-    def validate(self):
-        if self.cancel_.data:
-            return True
-        else:
-            if self.survey_name.data and self.course_code.data and \
-                self.question_list.data:
+def create_survey_form(ques_list, **kwargs):
+    class surv_f(FlaskForm):
+        cour_list = Course.loadlist()
+        def validate(self):
+            if self.cancel_.data:
                 return True
-            return False
-    survey_name = StringField(u'Survey Name')
-    course_code = SelectField(u'Course Code',
-        choices=list(zip(cour_list, cour_list)))
-    question_list = SelectMultipleField(u'Question List',
-                                        choices=list(zip(ques_id, ques_name)))
-    cancel_ = SubmitField(u'Cancel')
-    create_ = SubmitField(u'Create')
-
+            else:
+                if self.survey_name.data and self.course_code.data and \
+                        self.question_list.data:
+                    return True
+                return False
+        survey_name = StringField(u'Survey Name')
+        course_code = SelectField(u'Course Code',
+            choices=list(zip(cour_list, cour_list)))
+        question_list = SelectMultipleField(u'Question List',
+                                        choices=ques_list)
+        cancel_ = SubmitField(u'Cancel')
+        create_ = SubmitField(u'Create')
+    return surv_f(**kwargs)
 
 # TODO raise ValidationError
 class choose_question_type_form(FlaskForm):
     def validate(self):
         if self.cancel_.data:
             return True
-        else:
-            if not self.question_name.data and self.choice_number.data:
-                return False
+        elif self.choice_number.data is None:
+            return False
+        elif int(self.choice_number.data) < 2 or \
+                int(self.choice_number.data) > 8:
+            return False
+        elif self.question_name.data and self.choice_number.data:
             return True
+        else:
+            return False
     question_name = StringField(u'Question Name')
     # NOTE temporarily unused
     # question_type = SelectField(u'Qusetion type',
@@ -117,19 +106,18 @@ class create_question_sa_form(FlaskForm):
 # validate should be re-organized in views.py
 def create_answer_mco_form(name, choices, **kwargs):
     class rad_f(FlaskForm):
-        radio_f = RadioField(name)  # can be extended
-        back_ = SubmitField(u'Back')
-        next_ = SubmitField(u'Next')
         def validate(self):
             if self.back_.data:
                 return True
-            elif self.radio_f.data is not None:
-                return True
-            else:
+            elif self.radio_f.data == "None":
                 return False
-    form = rad_f(**kwargs)
-    form.radio_f.choices = list(zip([c for c in range(len(choices))], choices))
-    return form
+            else:
+                return True
+        radio_f = RadioField(name,
+            choices=list(zip([c for c in range(len(choices))], choices)))
+        back_ = SubmitField(u'Back')
+        next_ = SubmitField(u'Next')
+    return rad_f(**kwargs)
 
 
 # TODO raise ValidationError

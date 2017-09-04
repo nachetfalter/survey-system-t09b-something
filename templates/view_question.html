@@ -1,19 +1,21 @@
-{% extends "baselogin.html" %}
+{% extends "base_admin.html" %}
 
 {% block title %}View Question{% endblock %}
 
 {% block content %}
 
-<div class = "container">
+<div class="container">
 
-	<h2> Question </h2>
-	<h5> ID: {{ques['ques_ID']}} </h5>
-	<h5> Name: {{ques['quest']}} </h5>
+    <div class="container question">
+    	<h2> View Question </h2>
+	    <h5> ID: {{ques['ques_ID']}} </h5>
+    	<h5> Name: {{ques['quest']}} </h5>
+    </div>
 
 	<div class="list-group">
-	  <a href="#" class="list-group-item">{{ques['choice_1']}}</a>
-	  <a href="#" class="list-group-item">{{ques['choice_2']}}</a>
-	  <!-- <a href="#" class="list-group-item">{{ques['choice_3']}}</a> -->
+        {% for choi in ques['choi_content'] %}
+	    <a href="#" class="list-group-item">{{ choi }}</a>
+        {% endfor %}
 	</div>
 
 	<div>

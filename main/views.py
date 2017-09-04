@@ -27,7 +27,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = forms.login_form()
-    if form.zid.data == 'z2333333' and form.password.data == 'password':
+    if form.validate_on_submit() and \
+            form.zid.data == 'z2333333' and form.password.data == 'password':
         return redirect(url_for('admin'))
     return render_template("login.html", form=form)
 
@@ -82,9 +83,9 @@ def ad_question_create():
                 key = data_io.Question.getkey(session['num'])
                 value = [int(), session['ques_name'], session['num']]
                 fields = ['choice_{0}'.format(n)
-                             for n in range(1, int(session['num'])+1)]
+                          for n in range(1, int(session['num'])+1)]
                 for name in fields:
-                    value.append(getattr(getattr(form, name), 'data'))
+                    value.append(str(getattr(getattr(form, name), 'data')))
                 new_ques = dict(zip(key, value))
                 data_io.Question.append(new_ques)
                 return redirect(url_for('ad_question_pool'))
@@ -135,9 +136,10 @@ def ad_question_edit():
             key = data_io.Question.getkey(choi_num)
             value = [ques['ques_ID'], ques_name, choi_num]
             fields = ['choice_{0}'.format(n)
-                        for n in range(1, choi_num+1)]
+                      for n in range(1, choi_num+1)]
             for name in fields:
-                value.append(getattr(getattr(form, name), 'data'))
+                value.append(str(getattr(getattr(form, name), 'data')))
+            value = [str(v) for v in value]
             modi_ques = dict(zip(key, value))
             data_io.Question.update(modi_ques)
             return redirect(url_for('ad_question_pool'))
@@ -145,8 +147,11 @@ def ad_question_edit():
         choi.pop('choi_num')
         choi.pop('ques_ID')
         choi.pop('quest')
-        for k, v in choi.items():
-            setattr(getattr(form, k), 'data', v)
+        for key, value in choi.items():
+            try:
+                setattr(getattr(form, key), 'data', value)
+            except:
+                pass
         return render_template('edit_question.html', form=form)
 
 
@@ -165,6 +170,13 @@ def ad_question_delete():
 # @login_required
 def ad_question_view():
     ques = data_io.Question.load(request.form.get('question_id'))
+    ques_choi_name = ['choice_{0}'.format(n)
+                      for n in range(1, int(ques.get('choi_num'))+1)]
+    ques_choi = list()
+    for name in ques_choi_name:
+        ques_choi.append(ques.get(name))
+        ques.pop(name)
+    ques.update({'choi_content': ques_choi})
     return render_template('view_question.html', ques=ques)
 
 
@@ -182,7 +194,14 @@ def ad_survey_list():
 # TODO use flask-login
 # @login_required
 def ad_survey_create():
-    form = forms.create_survey_form()
+    ques_list = data_io.Question.load()
+    ques_id = list()
+    ques_name = list()
+    for ques in ques_list:
+        ques_id.append(ques.get('ques_ID'))
+        ques_name.append(ques.get('quest'))
+    choices = list(zip(ques_id, ques_name))
+    form = forms.create_survey_form(choices)
     # TODO need to catch exception here
     # try:
     # except ValidationError:
@@ -211,17 +230,20 @@ def ad_survey_edit():
     else:
         surv_id = session['surv_id']
     surv = data_io.Survey.load(surv_id)
-    form = forms.create_survey_form()
-    form.survey_name.data = surv.get('surv_name')
-    # form.course_code.process_data(surv.get('course_ID'))
-    # form.question_list.process_data(surv.get('ques_ID'))
+    ques_list = data_io.Question.load()
+    ques_id = list()
+    ques_name = list()
+    for ques in ques_list:
+        ques_id.append(ques.get('ques_ID'))
+        ques_name.append(ques.get('quest'))
+    choices = list(zip(ques_id, ques_name))
+    form = forms.create_survey_form(choices)
     # TODO need to catch exception here
     # try:
     # except ValidationError:
     # finally:
     if form.create_.data and form.validate_on_submit():
         key = data_io.Survey.getkey()
-        print(form.course_code.data)
         value = [surv_id, form.course_code.data, form.question_list.data,
                  form.survey_name.data]
         modi_surv = dict(zip(key, value))
@@ -229,7 +251,10 @@ def ad_survey_edit():
         return redirect(url_for('ad_survey_list'))
     if form.cancel_.data and form.validate_on_submit():
         return redirect(url_for('ad_survey_list'))
-    return render_template('create_survey.html', form=form)
+    form.survey_name.data = surv.get('surv_name')
+    form.course_code.process_data(surv.get('course_ID'))
+    form.question_list.process_data(surv.get('ques_ID'))
+    return render_template('edit_survey.html', form=form)
 
 
 # delete survey
@@ -260,13 +285,13 @@ def ad_survey_view():
 # TODO use flask-login
 # @login_required
 def ad_survey_result():
-    return 418
+    abort(418)
 
 
 # result root access forbidden
 @app.route('/result')
 def result():
-    return 403
+    abort(403)
 
 
 # TODO to be implemented in next stage
@@ -286,7 +311,7 @@ def result_surv(surv_id):
 # XXX abandoned
 @app.route('/survey')
 def us_survey_list():
-    return 403
+    abort(403)
 
 
 # redirect to first question of the survey automatically
@@ -348,13 +373,21 @@ def us_survey_questions(surv_id, ques_id):
         else:
             key = data_io.Answer.getkey()
             answ_list = [str(int(a)-1) for a in str(session['answer'])]
+            while len(answ_list) < len(ques_id_list):
+                answ_list.insert(0, '0')
             # TODO identify user here
             value = [int(), surv_id, ques_id_list, answ_list]
             data = dict(zip(key, value))
             data_io.Answer.append(data)
-            # TODO modify this part
-            return "<h2>Thank You</h2>"
-    return render_template('do_survey.html', ques_name=ques.get('quest'), form=form)
+            return redirect(url_for('thank_you'))
+    return render_template('do_survey.html', ques_name=ques.get('quest'),
+                           form=form)
+
+
+# show thank-you message to respondents
+@app.route('/thank_you')
+def thank_you():
+    return render_template('thank_you.html')
 
 
 # NOTE test use only, modify before using

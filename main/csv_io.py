@@ -75,8 +75,6 @@ class Base:
         inst = csv_read(f_name)
         inst_id_li = [str(i.get(i_name)) for i in inst]
         inst_id = str(inst_id)
-        #print(inst_id)
-        #print(inst_id_li)
         if str(inst_id) not in inst_id_li:
             raise IndexError("Invalid ID")
         else:
@@ -151,7 +149,7 @@ class Survey(Base):
         dic = {}
         dic = super(Survey, Survey).\
             append("survey.csv", "surv_ID", data)
-        Result.append({'surv_ID': dic.get('surv_ID'),'ques_ID': buff,'result': buff})
+        Result.append({'surv_ID': dic.get('surv_ID'),'ques_ID': buff,'result': ''})
 
     @staticmethod
     def delete(survey_id=None):
@@ -169,7 +167,7 @@ class Question(Base):
             getkey("question.csv"))
         col.pop()
         i = 1
-        while i <= choi_num:
+        while i <= int(choi_num):
             col.append("".join(['choice_',str(i)]))
             i += 1
         return col
@@ -207,7 +205,8 @@ class Question(Base):
             remove.append(buf)
             j += 1
         i = 0
-        while i <= len(data) - 2:
+        length = len(data)
+        while i < length - 3:
             data.pop(remove[i])
             i += 1
         data['choi_content'] = '/'.join(choice)
@@ -226,7 +225,8 @@ class Question(Base):
             remove.append(buf)
             j += 1
         i = 0
-        while i <= len(data) - 2:
+        length = len(data)
+        while i < length - 3:
             data.pop(remove[i])
             i += 1
         data['choi_content'] = '/'.join(choice)
@@ -257,24 +257,34 @@ class Result(Base):
 
     @staticmethod
     def update(survey_id):
+        q = []
+        q = (Survey.load(str(survey_id)))['ques_ID']
+        choi = []
+        for x in q:
+            y = 0
+            choi_d = []
+            while y < int(Question.load(str(x))['choi_num']):
+                choi_d.append('0')
+                y += 1
+            choi.append(choi_d)
         dl = []
         dl = Answer.load(str(survey_id),None)
-        buff = []
-        buff = [0]*len(dl[0].get('answer').split("/"))
         temp = []
         k = 0
         for a in dl:
             temp = str(a.get('answer')).split("/")
             k = 0
             for j in temp:
-                buff[k] += int(j)
+                choi[k][int(j)] = str(int(choi[k][int(j)]) + 1)
                 k += 1
-        i = 0
-        while i < len(dl[0].get('answer').split("/")):
-            buff[i] = str(buff[i])
-            i += 1
+
+        choi_f = []
+        for i in choi:
+            choi_f.append('-'.join(i))
+        final = ""
+        final = '/'.join(choi_f)
         dic = {}
-        dic = {'surv_ID':str(survey_id),'ques_ID':dl[0].get('ques_ID'),'result':"/".join(buff)}
+        dic = {'surv_ID':str(survey_id),'ques_ID':dl[0].get('ques_ID'),'result':final}
         return super(Result, Result).\
             update("result.csv", "surv_ID", str(survey_id), dic)
 
@@ -284,7 +294,7 @@ class Result(Base):
             writer = DictWriter(csv_f, fieldnames=super(Result, Result).getkey("result.csv"))
             writer.writerow(data)
             csv_f.close()
-        
+
     @staticmethod
     def delete(survey_id=None):
         Answer.delete(str(survey_id),None)
@@ -336,7 +346,7 @@ class Res(Base):
 
     @staticmethod
     def update(data):
-        user_id = ""        
+        user_id = ""
         user_id = data.get("user_ID")
         return super(Res, Res).\
             update("res.csv", "user_ID", str(user_id), data)
@@ -408,7 +418,7 @@ class Answer(Base):
         with open("./csv/"+"answer.csv", 'a') as csv_f:
             writer = DictWriter(csv_f, fieldnames=super(Answer, Answer).getkey("answer.csv"))
             writer.writerow(dic)
-            csv_f.close()      
+            csv_f.close()
         Result.update(str(survey_id))
 
 
@@ -433,7 +443,6 @@ class Answer(Base):
             id = '/'.join([str(survey_id),str(user_id)])
             return super(Answer, Answer).\
                 delete("answer.csv", "s/u_ID", id)
-
 
 class Course(Base):
     @staticmethod

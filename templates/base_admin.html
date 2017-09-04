@@ -1,14 +1,12 @@
 {% extends "bootstrap/base.html" %}
-<head>
 {% block head %}
 {{ super() }}
-<link rel=stylesheet type=text/css href="/static/styles.css?q=1280549780">
-<script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    <link rel=stylesheet type=text/css href={{ url_for('static', filename='style.css') }} />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    <script src={{ url_for('static', filename='popup.js') }}></script>
 {% endblock %}
-</head>
-<body>
-	{% block navbar %}
-	<nav class="navbar navbar-default">
+{% block navbar %}
+	<div class="navbar navbar-default navbar-fixed-top">
 	    <div class="container-fluid">
 	      <div class="navbar-header">
 	         <a class = "navbar-brand">T09B-Something</a>
@@ -30,8 +28,5 @@
 	         </li>
 			</ul>
 	   </div>
-	</nav>
-	{% endblock %}
-	<script type=text/javascript src="{{ url_for('static', filename='jquery.js') }}"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
-</body>
+	</div>
+{% endblock %}
