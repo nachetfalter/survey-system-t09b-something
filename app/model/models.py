@@ -232,7 +232,13 @@ class Question(db.Model):
         if len(choice) == 0:
             dic['chID'] = []
             dic['cho_con'] = []
-            return dic
+        elif choice.order == 0:
+            chID = []
+            cho_con = []
+            chID.append(choice.chID)
+            cho_con.append(choice.cho_con)
+            dic['chID'] = chID
+            dic['cho_con'] = cho_con
         else:
             chID = []
             cho_con = []
@@ -246,7 +252,7 @@ class Question(db.Model):
                         switch = 0
             dic['chID'] = chID
             dic['cho_con'] = cho_con
-            return dic
+        return dic
 
     @staticmethod
     def cho_num(qID):
@@ -468,7 +474,13 @@ class Survey_Question(db.Model):
         if len(choice) == 0:
             dic['chID'] = []
             dic['cho_con'] = []
-            return dic
+        elif choice.order == 0:
+            chID = []
+            cho_con = []
+            chID.append(choice.chID)
+            cho_con.append(choice.cho_con)
+            dic['chID'] = chID
+            dic['cho_con'] = cho_con
         else:
             chID = []
             cho_con = []
@@ -481,7 +493,7 @@ class Survey_Question(db.Model):
                     switch = 0
             dic['chID'] = chID
             dic['cho_con'] = cho_con
-            return dic
+        return dic
 
     @staticmethod
     def cho_num(sqID):
