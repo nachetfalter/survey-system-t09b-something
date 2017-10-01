@@ -232,11 +232,11 @@ class Question(db.Model):
         if len(choice) == 0:
             dic['chID'] = []
             dic['cho_con'] = []
-        elif choice.order == 0:
+        elif choice[0].order == 0:
             chID = []
             cho_con = []
-            chID.append(choice.chID)
-            cho_con.append(choice.cho_con)
+            chID.append(choice[0].chID)
+            cho_con.append(choice[0].cho_con)
             dic['chID'] = chID
             dic['cho_con'] = cho_con
         else:
@@ -474,11 +474,11 @@ class Survey_Question(db.Model):
         if len(choice) == 0:
             dic['chID'] = []
             dic['cho_con'] = []
-        elif choice.order == 0:
+        elif choice[0].order == 0:
             chID = []
             cho_con = []
-            chID.append(choice.chID)
-            cho_con.append(choice.cho_con)
+            chID.append(choice[0].chID)
+            cho_con.append(choice[0].cho_con)
             dic['chID'] = chID
             dic['cho_con'] = cho_con
         else:
@@ -487,10 +487,11 @@ class Survey_Question(db.Model):
             while switch == 0:
                 switch = 1
                 for i in choice:
-                    chID.append(i.chID)
-                    cho_con.append(i.cho_con)
-                    order += 1
-                    switch = 0
+                    if i.order == order:
+                        chID.append(i.chID)
+                        cho_con.append(i.cho_con)
+                        order += 1
+                        switch = 0
             dic['chID'] = chID
             dic['cho_con'] = cho_con
         return dic
