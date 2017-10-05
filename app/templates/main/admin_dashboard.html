@@ -1,0 +1,131 @@
+<!DOCTYPE>
+<head>
+{% block head %}
+   <!-- <link rel=stylesheet type=text/css href={{ url_for('static', filename='style.css') }} /> -->
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+{% endblock %}
+</head>
+
+<body>
+   <div id="app">
+    <v-app id="inspire">
+      <v-app id="tool_bar" toolbar footer>
+
+    <!--           navigation drawer definition              -->
+    <v-navigation-drawer
+      temporary
+      clipped
+      enable-resize-watcher
+      v-model="drawer"
+      absolute
+      dark
+    >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-avatar>
+            <img v-bind:src="url" />
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+            <!-- back to login page -->
+            <v-btn color='red' dark @click = link(logout_href) >Logout</v-btn>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+      <v-list class="pt-0" dense>
+        <v-divider></v-divider>
+        <!-- this is to link side icons -->
+        <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+          <v-list-tile-action>
+            <v-icon>[[item.icon]]</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>[[item.title]]</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+    </v-navigation-drawer>
+
+
+    <!--           Tool bar code and definition              -->
+      <v-toolbar class="cyan darken-3" dark fixed app>
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>Dashboard</v-toolbar-title>
+      </v-toolbar>
+<!-- Dashboard Content -->
+      <main>
+         <v-content>
+                  <v-container fluid fill-height>
+                     <v-layout column>
+                        <h3>Welcome to the admin dashboard! Please select one of the options below.</h3>
+                        <hr class="style13">
+
+                  <v-layout row>
+                        <v-flex xs12>
+                              <v-list two-line>
+                                 <template v-for="option in options">
+                                       <v-list-tile @click="" :href = "option.href">
+                                             <v-list-tile-action>
+                                                   <v-list-tile-content>
+                                                         <v-list-tile-title v-html="option.id"></v-list-tile-title>
+                                                         <v-list-tile-sub-title v-html="option.name"></v-list-tile-sub-title>
+                                                   </v-list-tile-content>
+                                             </v-list-tile-action>
+                                       </v-list-tile>
+                                       <v-divider></v-divider>
+                                 </template>
+                              </v-list>
+                        </v-flex>
+                        </v-layout>
+                  </v-layout>
+                  </v-container>
+         </v-content>
+      </main>
+
+</v-app>
+</v-app>
+</div>
+
+
+<script>
+   var drawer = new Vue({
+
+   el: '#app',
+   delimiters: ["[[", "]]"],
+   data() {
+
+      return{
+
+        drawer:false,
+
+        //icons to be displaced in drawer
+        items: [
+
+          { title: 'Dashboard', icon: 'dashboard',href:'/admin' },
+          { title: 'Surveys', icon: 'book',href:'/admin/surveys' },
+          { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
+          { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
+
+         ],
+        options: [
+         { id: 'View all surveys', name: 'View all avaliable surveys created.', href: '/admin/surveys'},
+         { id: 'Edit questions', name: 'Add or delete questions.', href: '/admin/questions'},
+         { id: 'View courses', name: 'View or modify course surveys and results', href: 'admin/metric'}
+         ],
+
+        right: null,
+
+        status:'Admin Login',
+
+      }
+
+   }
+
+   })
+</script>
+
+</body>
