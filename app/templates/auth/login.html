@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<head>
+   <title>Login</title>
+   <style>
+   #app {
+     font-family: 'Avenir', Helvetica, Arial, sans-serif;
+     -webkit-font-smoothing: antialiased;
+     -moz-osx-font-smoothing: grayscale;
+     text-align: center;
+     color: #2c3e50;
+     margin-top: 60px;
+   }
+
+   h1, h2 {
+     font-weight: normal;
+   }
+
+   ul {
+     list-style-type: none;
+     padding: 0;
+   }
+
+   li {
+     display: inline-block;
+     margin: 0 10px;
+   }
+
+   a {
+     color: #42b983;
+   }
+   </style>
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+</head>
+<body>
+   <div id="app">
+      <div class = "container">
+         <v-form>
+            <h4> Welcome to the Survey System!</h4>
+            <h5> Please type your zID and password. </h5>
+            <v-text-field
+               label="zID"
+               v-model="username"
+               required
+               placeholder="z1234567"
+            ></v-text-field>
+            <v-text-field
+               label="Password"
+               v-model="password"
+               required
+               type="password"
+               placeholder="***********"
+            ></v-text-field>
+            <v-btn block @click.prevent="getFormValues()">Login</v-btn>
+            <v-alert info dismissible
+               error
+               v-model="alert"
+               transition="scale-transition"
+             >
+               Invalid username and password combination!
+             </v-alert>
+            <!--- <p id='errormsg'></p> -->
+         </v-form>
+      </div>
+  </div>
+  <script type="application/javascript">
+      var vm = new Vue({
+         el: '#app',
+         delimiters: ["[[", "]]"],
+         data: {
+            username: '',
+            password: '',
+            alert: false
+         },
+         methods: {
+             getFormValues: function() {
+                axios.post('/api/auth/gen', {
+                  username: this.username,
+                  password: this.password
+                })
+                .then(function (response) {
+                /*
+                  document.querySelector('#errormsg').innerText = response.data.role;
+                  if (response.data.role == 'Student') {
+                     window.location.replace("/student");
+                  } else if (response.data.role == 'Admin') {
+                     window.location.replace("/admin");
+                  } else {
+                     window.location.replace("/staff");
+                  }
+                */
+                    var token = response.data.token;
+                    sessionStorage.setItem('token', token);
+                    axios.post('/login', {
+                        token: token
+                    })
+                    .then(function (response) {
+                        window.location.href = response.data;
+                        //vm.$router.push({ path: response.data })
+                        // document.querySelector('#errormsg').innerText = localStorage.getItem('token')
+                    })
+                })
+                .catch(function(error) {
+                   vm.alert = true;
+                });
+            }
+         }
+     })
+  </script>
+</body>
