@@ -91,17 +91,22 @@ class User(db.Model, UserMixin):
         dic.pop('_sa_instance_state', None)
         course = Enrolment.query.filter_by(zID=self.zID).all()
         if len(course) == 0:
-            dic['cID'] = []
-            dic['course'] = []
+            dic['survey'] = []
             return dic
         else:
-            cID = []
-            course = []
+            dummy = []
+            survey = []
             for i in course:
-                cID.append(i.cID)
-                course.append(i.course)
-            dic['cID'] = cID
-            dic['course'] = course
+                dummy.append(Survey.query.filter_by(cID=i.cID).first().sID)
+            for i in dummy:
+                dummy_list = []
+                dummy_list.append(i)
+                if Answer_Record.check(self.zID, i) == 1:
+                    dummy_list.append(1)
+                else:
+                    dummy_list.append(0)
+                survey.append(dummy_list)
+            dic['survey'] = survey
             return dic
 
     # Boolean check the authority of the user.
@@ -254,12 +259,6 @@ class Question(db.Model):
             dic['cho_con'] = cho_con
         return dic
 
-    @staticmethod
-    def cho_num(qID):
-        buff = []
-        buff.extend(Choice.query.filter_by(qID=qID).all())
-        return len(buff)
-
     # Delete a question will cause the choices associate with it to be deleted
     @staticmethod
     def delete(qID):
@@ -315,6 +314,7 @@ class Choice(db.Model):
     @staticmethod
     def delete(chID):
         data = db_load(Choice, chID)
+        Survey_Question.query.get(data.sqID).cho_num -= 1
         db.session.delete(data)
         db.session.commit()
 
@@ -428,6 +428,7 @@ class Answer_Record(db.Model):
     # Therefore I only added one for you to check for record and return Boolean
     @staticmethod
     def check(zID, sID):
+        target = None
         target = db_load(Answer_Record, [zID, sID])
         if target is None:
             return False
@@ -455,7 +456,11 @@ class Survey_Question(db.Model):
         self.order = order
 
     @staticmethod
-    def new(sID, qtype, title, cho_num, order):
+    def new(sID, qID, order):
+        question = Question.query.get(qID)
+        qtype = question.qtype
+        title = question.title
+        cho_num = question.cho_num
         result = Survey_Question(sID, qtype, title, cho_num, order)
         db.session.add(result)
         db.session.commit()
@@ -495,12 +500,6 @@ class Survey_Question(db.Model):
             dic['chID'] = chID
             dic['cho_con'] = cho_con
         return dic
-
-    @staticmethod
-    def cho_num(sqID):
-        buff = []
-        buff.extend(Result.query.filter_by(sqID=sqID).all())
-        return len(buff)
 
     @staticmethod
     def delete(sqID=None):
@@ -559,7 +558,8 @@ class Result(db.Model):
 
     @staticmethod
     def delete(chID):
-        data = db_load(Result, [sqID, chID])
+        data = db_load(Result, chID)
+        Survey_Question.query.get(data.sqID).cho_num -= 1
         db.session.delete(data)
         db.session.commit()
 
