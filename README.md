@@ -1,15 +1,23 @@
-# SurvSys -- Survey System made by Group T09B Something
+## Instructions for the Administrators:
 
-# README.md Still Under Construction!
 
-## Preparation
+## Flow:
 
-put all csv files under survey-system-t09b-something/data/
+## Download Project:
 
-## Usage
+	$ git clone https://github.com/cse1531S1/survey-system-t09b-something.git
+    $ cp * survey-system-t09b-somthing/data/ # put all the csv files under survey-system-t09b-something/data/
 
+## Set Up Local Environment:
+
+	$ sudo pip3 install -r requirements.txt
+	$ cd survey-system-t09b-something/
     $ python3 deploy.py
-    $ python3 run.py runserver
+    
+## Run the Server:
 
-default server runs on 127.0.0.1:5000
+	$ python3 run.py runserver #default server runs on 127.0.0.1:5000
+
+
+run `python3 run.py runserver --help` for more information
 

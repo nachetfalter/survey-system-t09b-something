@@ -97,7 +97,7 @@ class User(db.Model, UserMixin):
             dummy = []
             survey = []
             for i in course:
-                dummy.append(Survey.query.filter_by(cID=i.cID).first().sID)
+                dummy.append(getattr(Survey.query.filter_by(cID=i.cID).first(), 'sID', None))
             for i in dummy:
                 dummy_list = []
                 dummy_list.append(i)
@@ -211,14 +211,14 @@ class Question(db.Model):
     title = db.Column("title", db.String(80), nullable=False)
     cho_num = db.Column("cho_num", db.Integer, default=0)
 
-    def __init__(self, qtype, title, cho_num):
+    def __init__(self, qtype, title):
         self.qtype = qtype
         self.title = title
-        self.cho_num = cho_num
+        self.cho_num = 0
 
     @staticmethod
-    def new(qtype, title, cho_num):
-        result = Question(qtype, title, cho_num)
+    def new(qtype, title):
+        result = Question(qtype, title)
         db.session.add(result)
         db.session.commit()
         return result.qID
@@ -263,15 +263,20 @@ class Question(db.Model):
     @staticmethod
     def delete(qID):
         data = db_load(Question, qID)
+        link = Survey_Question.filter_by(qID=qID).all()
+        for i in link:
+            i.qID = None
         db.session.delete(data)
         db.session.commit()
 
     @staticmethod
-    def update(qID, qtype, title, cho_num):
+    def update(qID, qtype, title):
         target = Question.query.get(qID)
         target.qtype = qtype
         target.title = title
-        target.cho_num = cho_num
+        link = Survey_Question.filter_by(qID=qID).all()
+        for i in link:
+            i.qID = None
         db.session.commit()
 
 
@@ -315,6 +320,9 @@ class Choice(db.Model):
     def delete(chID):
         data = db_load(Choice, chID)
         Survey_Question.query.get(data.sqID).cho_num -= 1
+        link = Survey_Question.filter_by(qID=data.qID).all()
+        for i in link:
+            i.qID = None
         db.session.delete(data)
         db.session.commit()
 
@@ -323,6 +331,9 @@ class Choice(db.Model):
         target = Choice.query.get(chID)
         target.cho_con = cho_con
         target.order = order
+        link = Survey_Question.filter_by(qID=target.qID).all()
+        for i in link:
+            i.qID = None
         db.session.commit()
 
 
@@ -337,7 +348,7 @@ class Survey(db.Model):
     start_date = db.Column("start_date", db.DateTime)
     update_date = db.Column("update_date", db.DateTime, default=datetime.utcnow())
     close_date = db.Column("close_date", db.DateTime)
-    status = db.Column("status", db.Boolean, default=False)
+    status = db.Column("status", db.Integer, default=0)
 
     def __init__(self, cID, name, start_date, close_date):
         self.cID = cID
@@ -387,10 +398,10 @@ class Survey(db.Model):
     @staticmethod
     def status_operation(sID):
         data = db_load(Survey, sID)
-        if data.status is True:
-            data.status = False
-        else:
-            data.status = True
+        if data.status is 0:
+            data.status = 1
+        elif data.status is 1:
+            data.status = 2
         db.session.commit()
 
     @staticmethod
@@ -443,16 +454,18 @@ class Survey_Question(db.Model):
     __tablename__ = "Survey_Question"
     sqID = db.Column("sqID", db.Integer, primary_key=True, autoincrement=True)
     sID = db.Column("sID", db.Integer, db.ForeignKey('Survey.sID', ondelete='CASCADE'))
+    qID = db.Column("qID", db.Integer)
     qtype = db.Column("qtype", db.String(3), CheckConstraint('qtype == "Opt" or qtype == "Gne"'))
     title = db.Column("title", db.String(80), nullable=False)
     cho_num = db.Column("cho_num", db.Integer, default=0)
     order = db.Column("order", db.Integer)
 
-    def __init__(self, sID, qtype, title, cho_num, order):
+    def __init__(self, sID, qID, qtype, title, order):
         self.sID = sID
+        self.qID = qID
         self.qtype = qtype
         self.title = title
-        self.cho_num = cho_num
+        self.cho_num = 0
         self.order = order
 
     @staticmethod
@@ -460,8 +473,7 @@ class Survey_Question(db.Model):
         question = Question.query.get(qID)
         qtype = question.qtype
         title = question.title
-        cho_num = question.cho_num
-        result = Survey_Question(sID, qtype, title, cho_num, order)
+        result = Survey_Question(sID, qID, qtype, title, order)
         db.session.add(result)
         db.session.commit()
         return Survey_Question.sqID
@@ -508,10 +520,8 @@ class Survey_Question(db.Model):
         db.session.commit()
 
     @staticmethod
-    def update(sqID, title, cho_num, order):
+    def update(sqID, order):
         target = Survey_Question.query.get(sqID)
-        target.title = title
-        target.cho_num = cho_num
         target.order = order
         db.session.commit()
 
@@ -530,15 +540,17 @@ class Result(db.Model):
     order = db.Column("order", db.Integer)
     answer = db.Column("answer", db.Text, default='Null')
 
-    def __init__(self, sqID, cho_con, order, answer):
+    def __init__(self, sqID, cho_con, order):
         self.sqID = sqID
         self.order = order
         self.cho_con = cho_con
-        self.answer = answer
 
     @staticmethod
-    def new(sqID, cho_con, order, answer):
-        result = Result(sqID, cho_con, order, answer)
+    def new(sqID, chID):
+        choice = Choice.query.get(chID)
+        cho_con = choice.cho_con
+        order = choice.order
+        result = Result(sqID, cho_con, order)
         db.session.add(result)
         question = Survey_Question.load(sqID)
         question.cho_num += 1
