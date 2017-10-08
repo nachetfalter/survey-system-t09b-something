@@ -12,7 +12,7 @@ from flask import jsonify, request, url_for
 from . import main
 from .decorators import jwt_required, jwt_required_at_level
 from ..auth.api import get_token_user
-from ..model.models import User, Question, Survey, Result, Survey_Question
+from ..model.models import User, Course, Question, Survey, Result, Survey_Question
 
 
 # TODO fix data visible problem
@@ -31,6 +31,14 @@ def user_api(user_id):
             return jsonify(user_dict), 200
         return jsonify({'Error': 'Not Permitted'}), 403
     return jsonify({"Error": "Not Found"}), 404
+
+
+# fetch course list
+@main.route('/api/course/')
+@jwt_required_at_level('Staff')
+def course_list_api():
+    c_all = Course.load()
+    return jsonify({"courses": [course.extract() for course in c_all]}), 200
 
 
 # fetch question pool info

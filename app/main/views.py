@@ -279,7 +279,7 @@ def st_survey_list():
 # redirect to first question of the survey automatically
 @main.route('/student/surveys/<int:surv_id>')
 def st_survey(surv_id):
-    first_ques_id = Survey.load(surv_id).question[0]
+    first_ques_id = Survey_Question.query.filter_by(sID=surv_id, order=1).first().sqID
     return redirect(url_for('.st_survey_questions',
                             surv_id=surv_id,
                             ques_id=first_ques_id))
