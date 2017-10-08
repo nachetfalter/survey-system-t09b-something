@@ -263,7 +263,7 @@ class Question(db.Model):
     @staticmethod
     def delete(qID):
         data = db_load(Question, qID)
-        link = Survey_Question.filter_by(qID=qID).all()
+        link = Survey_Question.query.filter_by(qID=qID).all()
         for i in link:
             i.qID = None
         db.session.delete(data)
@@ -274,7 +274,7 @@ class Question(db.Model):
         target = Question.query.get(qID)
         target.qtype = qtype
         target.title = title
-        link = Survey_Question.filter_by(qID=qID).all()
+        link = Survey_Question.query.filter_by(qID=qID).all()
         for i in link:
             i.qID = None
         db.session.commit()
@@ -320,7 +320,7 @@ class Choice(db.Model):
     def delete(chID):
         data = db_load(Choice, chID)
         Survey_Question.query.get(data.sqID).cho_num -= 1
-        link = Survey_Question.filter_by(qID=data.qID).all()
+        link = Survey_Question.query.filter_by(qID=data.qID).all()
         for i in link:
             i.qID = None
         db.session.delete(data)
@@ -331,7 +331,7 @@ class Choice(db.Model):
         target = Choice.query.get(chID)
         target.cho_con = cho_con
         target.order = order
-        link = Survey_Question.filter_by(qID=target.qID).all()
+        link = Survey_Question.query.filter_by(qID=target.qID).all()
         for i in link:
             i.qID = None
         db.session.commit()
@@ -474,9 +474,12 @@ class Survey_Question(db.Model):
         qtype = question.qtype
         title = question.title
         result = Survey_Question(sID, qID, qtype, title, order)
+        choice = Choice.query.filter_by(qID=qID).all()
+        for i in choice:
+            db.session.add(Result.new(result.sqID, i.chID))
         db.session.add(result)
         db.session.commit()
-        return Survey_Question.sqID
+        return result.sqID
 
     @staticmethod
     def load(sqID=None):
@@ -538,7 +541,7 @@ class Result(db.Model):
     sqID = db.Column("sqID", db.Integer, db.ForeignKey('Survey_Question.sqID', ondelete='CASCADE'))
     cho_con = db.Column("cho_con", db.Text)
     order = db.Column("order", db.Integer)
-    answer = db.Column("answer", db.Text, default='Null')
+    answer = db.Column("answer", db.Text, default='')
 
     def __init__(self, sqID, cho_con, order):
         self.sqID = sqID
@@ -555,7 +558,6 @@ class Result(db.Model):
         question = Survey_Question.load(sqID)
         question.cho_num += 1
         db.session.commit()
-        return result.chID
 
     @staticmethod
     def load(chID):

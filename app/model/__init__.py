@@ -1,5 +1,5 @@
 '''
-model/__init__.py
+app/model/__init__.py
 - - - - - - -
 initialization of module 'models' in M
 - - - - - - -
