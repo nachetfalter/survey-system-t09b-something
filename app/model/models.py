@@ -319,7 +319,7 @@ class Choice(db.Model):
     @staticmethod
     def delete(chID):
         data = db_load(Choice, chID)
-        Survey_Question.query.get(data.sqID).cho_num -= 1
+        Question.query.get(data.qID).cho_num -= 1
         link = Survey_Question.query.filter_by(qID=data.qID).all()
         for i in link:
             i.qID = None

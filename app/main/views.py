@@ -7,6 +7,8 @@ ZHENYU YAO z5125769 2017-10
 '''
 
 
+from dateutil import parser
+
 from flask import abort, jsonify, redirect, render_template, request, url_for
 from flask_login import login_required
 
@@ -75,7 +77,7 @@ def ad_question_edit(question_id):
         modi_choi = list(zip(modi_choi_id,
                              json_data.get('choice_content'),
                              [i+1 for i in range(len(modi_choi_id))]))
-        for choi_id in Choice.query.filter_by(qID=question_id).all().chID:
+        for choi_id in [choi.chID for choi in Choice.query.filter_by(qID=question_id).all()]:
             if choi_id not in modi_choi_id:
                 Choice.delete(choi_id)
         for choice in modi_choi:
@@ -123,10 +125,10 @@ def ad_survey_create():
         json_data = request.json
         new_surv_id = Survey.new(json_data.get('course_id'),
                                  json_data.get('survey_name'),
-                                 json_data.get('start_date'),
-                                 json_data.get('close_date'))
+                                 parser.parse(json_data.get('start_date')),
+                                 parser.parse(json_data.get('close_date')))
         ques_all = list(zip(json_data.get('question_id'),
-                            json_data.get('question_order')))
+                            [i+1 for i in range(len(json_data.get('question_id')))]))
         for ques in ques_all:
             Survey_Question.new(new_surv_id, ques[0], ques[1])
         return url_for('.ad_survey_list')
@@ -146,11 +148,11 @@ def ad_survey_edit(survey_id):
             Survey.update(survey_id,
                           json_data.get('course_id'),
                           json_data.get('survey_name'),
-                          json_data.get('start_date'),
-                          json_data.get('close_date'))
+                          parser.parse(json_data.get('start_date')),
+                          parser.parse(json_data.get('close_date')))
             ques_all = list(zip(json_data.get('survey_question_id'),
                                 json_data.get('question_id'),
-                                json_data.get('question_order')))
+                                [i+1 for i in range(len(json_data.get('question_id')))]))
             for ques in ques_all:
                 if ques[0] is None:
                     Survey_Question.new(survey_id, ques[1], ques[2])
@@ -229,11 +231,11 @@ def sf_survey_edit(survey_id):
             Survey.update(survey_id,
                           json_data.get('course_id'),
                           json_data.get('survey_name'),
-                          json_data.get('start_date'),
-                          json_data.get('close_date'))
+                          parser.parse(json_data.get('start_date')),
+                          parser.parse(json_data.get('close_date')))
             ques_all = list(zip(json_data.get('survey_question_id'),
                                 json_data.get('question_id'),
-                                json_data.get('question_order')))
+                                [i+1 for i in range(len(json_data.get('question_id')))]))
             for ques in ques_all:
                 if ques[0] is None:
                     if Question.load(ques[1]).qtype == "Opt":
@@ -245,7 +247,7 @@ def sf_survey_edit(survey_id):
                         Survey_Question.update(ques[0], ques[2])
                     else:
                         abort(400)
-            return url_for('.ad_survey_list')
+            return url_for('.sf_survey_list')
         return render_template('main/ad_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403
 
@@ -266,11 +268,19 @@ def student_dashboard():
     return render_template('main/student_dashboard.html')
 
 
+# student survey list
+@main.route('/student/surveys')
+@login_required
+@authority_level_required('Student')
+def st_survey_list():
+    return render_template('main/st_survey_list.html')
+
+
 # redirect to first question of the survey automatically
 @main.route('/student/surveys/<int:surv_id>')
-def us_survey(surv_id):
+def st_survey(surv_id):
     first_ques_id = Survey.load(surv_id).question[0]
-    return redirect(url_for('.us_survey_questions',
+    return redirect(url_for('.st_survey_questions',
                             surv_id=surv_id,
                             ques_id=first_ques_id))
 
@@ -278,7 +288,7 @@ def us_survey(surv_id):
 # (respondents) do survey at this route
 @main.route('/student/surveys/<int:surv_id>/<int:surv_ques_id>', methods=['GET', 'POST'])
 @login_required
-def us_survey_questions(surv_id, surv_ques_id):
+def st_survey_questions(surv_id, surv_ques_id):
     if request.is_json and not Validator.survey_answer(surv_id, request.json):
         abort(400)
     elif request.is_json:
@@ -286,20 +296,12 @@ def us_survey_questions(surv_id, surv_ques_id):
         for i in range(len(json_data.get('question_id'))):
             Result.update_answer(json_data.get('choice_id')[i],
                                  json_data.get('answer')[i])
-        return url_for('.thank_you')
+        return url_for('.st_thank_you')
     return render_template('main/st_do_survey.html')
 
 
 # show thank-you message to respondents
 @main.route('/student/surveys/thank-you')
 @login_required
-def thank_you():
+def st_thank_you():
     return render_template('main/st_thank_you.html')
-
-
-# NOTE test use only, modify before using
-@main.route('/test_success')
-@login_required
-def test_success():
-    abort(418)
-    return "<h3>Success.</h3>"

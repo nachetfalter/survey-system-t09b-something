@@ -6,11 +6,9 @@ initialization for package 'app' a.k.a. the website
 ZHENYU YAO z5125769 2017-10
 '''
 
+
 from flask import Flask
 from flask_bcrypt import Bcrypt
-from flask_bootstrap import Bootstrap
-# from flask_caching import Cache
-from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
@@ -21,10 +19,6 @@ from config import config
 
 
 bcrypt = Bcrypt()
-bootstrap = Bootstrap()
-# cache = Cache()
-# cache.config = {'CACHE_TYPE': 'simple'}
-jwt = JWTManager()
 mail = Mail()
 moment = Moment()
 sqlalchemy = SQLAlchemy()
@@ -42,8 +36,6 @@ def initialize_app(config_name):
     config[config_name].init_app(app)
 
     bcrypt.init_app(app)
-    bootstrap.init_app(app)
-    jwt.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
     sqlalchemy.init_app(app)
