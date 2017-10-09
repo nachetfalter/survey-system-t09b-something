@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<head>
+   <title>Add question</title>
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
+   <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
+   <!-- <script src="https://unpkg.com/vue"></script> -->
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+
+</head>
+
+  <div id="app">
+  <template>
+    <v-app id="inspire">
+      <v-app id="tool_bar" toolbar footer>
+
+    <!--           navigation drawer definition              -->
+    <v-navigation-drawer
+      temporary
+      v-model="drawer"
+      dark
+      overflow
+    >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-avatar>
+            <img v-bind:src="url" />
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+
+            [[user_ID]] 
+            <small v-if= "role === '/admin'">Admin</small>
+
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+      <v-list class="pt-0" dense>
+        <v-divider></v-divider>
+        <!-- this is to link side icons -->
+        <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+          <v-list-tile-action>
+            <v-icon>[[item.icon]]</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>[[item.title]]</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+
+      <v-btn ripple 
+             fixed 
+             bottom
+             block
+             color='red' 
+             dark 
+             @click = funcLogout()>Logout</v-btn>
+
+    </v-navigation-drawer>
+
+
+    <!--           Tool bar code and definition              -->
+      <v-toolbar app class="cyan darken-3" dark fixed app>
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>Add Question</v-toolbar-title>
+      </v-toolbar>
+
+    <!--           Dash board content                -->
+    <main>
+
+      <v-content>
+        <v-container sm8>
+       	<!-- message -->
+       	<v-layout column>
+
+       	<h5>[[msg]]</h5>
+
+        <hr>
+        <br />
+
+        [[msg4]]
+
+        <v-radio-group v-model="q_properties.q_ID" :mandatory="false">
+          <v-radio label="Generic question" value="Gne"></v-radio>
+          <v-radio label="Optional question" value="Opt"></v-radio>
+        </v-radio-group>
+
+        <hr>
+
+        <br />
+        [[msg2]]
+
+        <br />
+
+          <v-text-field
+            name="input-7-1"
+            label="Title"
+            v-model = "q_properties.curr_input_init"
+            multi-line
+          ></v-text-field>
+
+        <br />
+        <hr>
+        [[msg3]]
+
+        <v-layout row text-allign>
+          <v-btn color = 'blue' @click = "q_properties.q_type = 1">Multiple choice question</v-btn>
+          <v-btn color = 'red' @click = "q_properties.q_type = 2">Text form question</v-btn>
+        </v-layout>
+
+        <br />
+        <div v-if="q_properties.q_type == 1">
+
+        [[msg5]] 
+        <br /> 
+
+        <v-layout column>
+          <v-list-tile avatar v-for="option in q_properties.added_option" v-bind:key="option.title">
+            <v-list-tile-content>
+              <v-list-tile-title>[[option.title]]</v-list-tile-title>
+            </v-list-tile-content>
+            <v-btn color="red" flat @click.native= rem(option.ID)>Delete</v-btn>
+            <v-list-tile-action>
+            </v-list-tile-action>
+          </v-list-tile>
+
+            <v-dialog v-model="dialog" persistent width="50%">
+
+            <v-btn color="primary" dark slot="activator">Add option</v-btn>
+
+
+            <v-card>
+              <v-card-title>
+                <span class="headline">Option adding</span>
+              </v-card-title>
+              <v-card-text>
+                <v-container grid-list-md>
+                  <v-layout wrap>
+
+                      <v-text-field label="Please add option" multi-line v-model = q_properties.curr_option></v-text-field>
+
+                  </v-layout>
+                </v-container>
+                <small>*please fill out option</small>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" flat @click.native="dialog = false">Close</v-btn>
+                <v-btn color="blue darken-1" flat @click.native= add()>Add</v-btn>
+              </v-card-actions>
+
+              <v-alert info dismissible
+              error
+               icon="new_releases"
+               v-model="alert_pop"
+               transition="scale-transition">
+               Please check back
+            </v-alert>
+
+            </v-card>
+          </v-dialog>
+
+        </v-layout>
+
+        <br />
+        <hr>
+        <v-btn color="blue" @click.native= check()>Submit Question</v-btn>        
+
+        </div>
+        <div v-else>
+
+          <br />
+         <hr>
+          <v-btn color="blue" @click.native= check()>Submit Question</v-btn>
+
+        </div>
+
+        </v-layout>
+        </v-container>
+      </v-content>
+    </main>
+
+      <v-alert info dismissible
+          error
+          icon="new_releases"
+          v-model="alert_final"
+          transition="scale-transition">
+          Please check if all options are inputted correctly
+        </v-alert>
+
+      <v-footer app class = "cyan darken-3" >
+      <span class="white--text">T09B-Something</span>
+      </v-footer>
+
+    </v-app>
+    </v-app>
+    </template>
+
+  </div>
+
+
+<script>
+
+  var app = new Vue({
+
+    el: '#app',
+
+    delimiters: ["[[", "]]"],
+
+    data: {
+
+        alert_final: false,
+
+        alert_pop: false,
+
+        dialog: false,
+
+        user_ID: sessionStorage.user,
+
+        role: sessionStorage.role,
+
+        q_properties: {
+
+          curr_input_init: null,
+
+          //this defines current desired typoe of question
+          //1 == MC, 2 == text form
+           q_type: '',
+           q_ID: '',
+           added_option: [],
+           curr_option: null
+
+        },
+
+        msg2: 'Please enter the title of the question: ',
+
+        msg3: 'Please choose the type of question wanted: ',
+
+        msg4: 'Please select the identity of this question: ',
+
+        msg5: "please choose to add more options to this question:",
+
+        drawer:false,
+
+        //icons to be displaced in drawer
+        items: [
+
+          { title: 'Dashboard', icon: 'dashboard',href:'/admin' },
+          { title: 'Surveys', icon: 'book',href:'/admin/surveys' },
+          { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
+          { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
+
+        ],
+        logout_href: "#",
+
+        right: null,
+
+        url:'staff_profile.jpg',
+
+        //TODO: discussion
+        msg:'You can add a question here: '
+
+    },
+
+    methods: {
+        link(n){
+
+          window.location.replace(n)
+
+        },
+
+        add(n){
+
+          if(this.q_properties.curr_option == null) {
+
+            app.alert_pop = true;
+
+          }else{
+
+            let curr = 1;
+
+            let x = 0;
+
+            for(x in app.q_properties.added_option){
+
+                curr += 1;
+
+            }
+
+              app.q_properties.added_option.push({
+
+                  ID: curr,
+
+                  title: app.q_properties.curr_option
+
+                })
+              app.dialog = false;
+              app.q_properties.curr_option = null; 
+
+          }
+
+        },
+        rem(n){
+
+          if(n == 1){
+
+          this.q_properties.added_option.splice(0,1);
+
+          let counter = 1;
+
+          for(x in this.q_properties.added_option){
+
+            this.q_properties.added_option[x] = {ID: counter,title:this.q_properties.added_option[x].title};
+
+            counter++;
+
+          }
+
+          }else{
+
+            //pop an element
+            this.q_properties.added_option.splice(n - 1,1);
+
+            let counter = 1;
+
+            for(x in this.q_properties.added_option){
+
+
+              let counter = 1;
+
+            for(x in this.q_properties.added_option){
+
+              this.q_properties.added_option[x] = {ID: counter,title:this.q_properties.added_option[x].title};
+
+            counter++;
+
+            }
+
+          }
+
+        }
+
+      },
+      check(){
+
+        if((app.q_properties.added_option == null || app.q_properties.added_option == '') && app.q_properties.q_type == 1 ){
+
+          app.alert_final = true;
+
+
+        }else{
+          var arr = [];
+          for (var key in app.q_properties.added_option) {
+            if (app.q_properties.added_option.hasOwnProperty(key)) {
+              arr.push(app.q_properties.added_option[key].title);
+            }
+          }
+          axios.post(
+            '/admin/questions/create', {
+              question_name: app.q_properties.curr_input_init,
+              question_type: app.q_properties.q_ID,
+              choice_content: arr
+            }
+          )
+          .then((response) => {
+            window.location.href = response.data;
+          })
+
+        }
+
+
+      }, 
+      
+      funcLogout: function (event) {
+         sessionStorage.removeItem('token');
+         sessionStorage.removeItem('user');
+         axios.get(
+            '/logout',
+         )
+         .then((response) => {
+            window.location.href = response.data;
+         })
+      }
+
+    }
+
+})
+
+
+</script>
