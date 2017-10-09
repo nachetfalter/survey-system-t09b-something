@@ -1,28 +1,41 @@
 # Source file structure
     
     |-survey-system-t09b-something/
-      |-templates/
-        |-base.html
-        |-index.html
-        |-*.html # some other templates
-      |-static/
-        |-*.js # JavaScript files if necessary 
-        |-*.css # CSS files if necessary
-      |-csv/ # to be changed
-        |-*.csv # files storing data
-      |-main/
+      |-app/
         |-__init__.py
-        |-views.py # alias to routes.py
-        |-errors.py # handle errors like 404
-        |-forms.py
-        |-*.py # other python source
+        |-auth/
+          |-__init__.py
+          |-api.py
+          |-errors.py
+          |-views.py
+          |-...
+        |-main/
+          |-__init__.py
+          |-api.py
+          |-errors.py
+          |-views.py
+          |-...
+        |-model/
+          |-__init__.py
+          |-models.py
+          |-...
+        |-static/ # may be modified later
+          |-*.css
+          |-*.js
+          |-...
+        |-templates/
+          |-*.html
+          |-...
+      |-data/ # store data to be imported at setup stage
+        |-*.csv
+      |-docs/ # store project docs
+        |-*.md
+        |-*.pdf
       |-tests/
-        |-__init__.py
-        |-test*.py
+        |-...
       |-venv/ # if using
-      |-config.py # to be added
-      |-models.py # DB models # to be added
-      |-run.py # or manage.py
+        |-...
+      |-config.py
+      |-run.py
+      |-deploy.py
       |-... # and other project files 
-      ... # as well as other modules
-
