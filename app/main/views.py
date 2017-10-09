@@ -35,7 +35,7 @@ def admin_dashboard():
     return render_template('main/admin_dashboard.html')
 
 
-# view all questions
+# admin view all questions
 @main.route('/admin/questions')
 @login_required
 @authority_level_required('Admin')
@@ -43,7 +43,7 @@ def ad_question_pool():
     return render_template('main/ad_question_pool.html')
 
 
-# create question
+# admin create question
 @main.route('/admin/questions/create', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
@@ -62,6 +62,7 @@ def ad_question_create():
     return render_template('main/ad_create_question.html')
 
 
+# admin edit question
 @main.route('/admin/questions/edit/<int:question_id>', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
@@ -89,7 +90,7 @@ def ad_question_edit(question_id):
     return render_template('main/ad_edit_question.html')
 
 
-# delete question
+# admin delete question
 @main.route('/admin/questions/delete/<int:question_id>')
 @login_required
 @authority_level_required('Admin')
@@ -98,7 +99,7 @@ def ad_question_delete(question_id):
     return url_for('.ad_question_pool')
 
 
-# preview question
+# admin preview question
 @main.route('/admin/questions/view/<int:question_id>')
 @login_required
 @authority_level_required('Admin')
@@ -106,7 +107,7 @@ def ad_question_view(question_id):
     return render_template('main/ad_view_question.html')
 
 
-# view all surveys
+# admin view all surveys
 @main.route('/admin/surveys')
 @login_required
 @authority_level_required('Admin')
@@ -114,7 +115,7 @@ def ad_survey_list():
     return render_template('main/ad_survey_list.html')
 
 
-# create surveys and choose questions
+# admin create surveys and choose questions
 @main.route('/admin/surveys/create', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
@@ -135,7 +136,7 @@ def ad_survey_create():
     return render_template('main/ad_create_survey.html')
 
 
-# edit surveys and choose questions
+# admin edit surveys and choose questions
 @main.route('/admin/surveys/edit/<int:survey_id>', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
@@ -167,7 +168,7 @@ def ad_survey_edit(survey_id):
     return jsonify({"Error": "Immutable"}), 403
 
 
-# delete survey
+# admin delete survey
 @main.route('/admin/surveys/delete/<int:survey_id>')
 @login_required
 @authority_level_required('Admin')
@@ -178,7 +179,7 @@ def ad_survey_delete(survey_id):
     return jsonify({"Error": "Immutable"}), 400
 
 
-# preview survey
+# admin preview survey
 @main.route('/admin/surveys/view/<int:survey_id>')
 @login_required
 @authority_level_required('Admin')
@@ -294,7 +295,7 @@ def st_survey(surv_id):
                             ques_id=first_ques_id))
 
 
-# (respondents) do survey at this route
+# student do survey
 @main.route('/student/surveys/<int:surv_id>/<int:surv_ques_id>', methods=['GET', 'POST'])
 @login_required
 def st_survey_questions(surv_id, surv_ques_id):
@@ -309,7 +310,7 @@ def st_survey_questions(surv_id, surv_ques_id):
     return render_template('main/st_do_survey.html')
 
 
-# show thank-you message to respondents
+# show thank-you message to students
 @main.route('/student/surveys/thank-you')
 @login_required
 def st_thank_you():
