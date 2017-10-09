@@ -1,6 +1,9 @@
 <!DOCTYPE>
 <head>
-{% block head %}
+
+    <title>Admin Dashboard</title>
+
+   <!--<link rel="stylesheet" href="style.css"> -->
    <!-- <link rel=stylesheet type=text/css href={{ url_for('static', filename='style.css') }} /> -->
    <script src="https://unpkg.com/vue/dist/vue.js"></script>
    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -8,7 +11,7 @@
    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
-{% endblock %}
+
 </head>
 
 <body>
@@ -19,20 +22,20 @@
     <!--           navigation drawer definition              -->
     <v-navigation-drawer
       temporary
-      clipped
-      enable-resize-watcher
       v-model="drawer"
-      absolute
+      overflow
       dark
     >
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
             <img v-bind:src="url" />
-          </v-list-tile-avatar>
+          </v-list-tile-avatar> 
           <v-list-tile-content>
             <!-- back to login page -->
-            <v-btn color='red' dark @click = link(logout_href) >Logout</v-btn>
+            [[user_ID]] 
+            <small v-if= "role === '/admin'">Admin</small>   
+
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
@@ -40,6 +43,7 @@
         <v-divider></v-divider>
         <!-- this is to link side icons -->
         <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+         
           <v-list-tile-action>
             <v-icon>[[item.icon]]</v-icon>
           </v-list-tile-action>
@@ -48,21 +52,31 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
+
+      <v-btn ripple 
+             fixed 
+             bottom
+             block
+             color='red' 
+             dark 
+             @click = funcLogout()>Logout</v-btn>
     </v-navigation-drawer>
 
 
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-        <v-toolbar-title>Dashboard</v-toolbar-title>
+        <v-toolbar-title>Administrator Dashboard</v-toolbar-title>
       </v-toolbar>
 <!-- Dashboard Content -->
       <main>
          <v-content>
-                  <v-container fluid fill-height>
+                  <v-container>
                      <v-layout column>
-                        <h3>Welcome to the admin dashboard! Please select one of the options below.</h3>
-                        <hr class="style13">
+                        <h5>Welcome to the admin dashboard! Please select one of the options below.</h5>
+                        <hr>
+
+                        <br />
 
                   <v-layout row>
                         <v-flex xs12>
@@ -85,13 +99,16 @@
                   </v-container>
          </v-content>
       </main>
-
+      <v-footer app class = "cyan darken-3">
+      <span class="white--text">T09B-Something</span>
+      </v-footer>
 </v-app>
 </v-app>
 </div>
 
 
 <script>
+
    var drawer = new Vue({
 
    el: '#app',
@@ -99,6 +116,10 @@
    data() {
 
       return{
+
+        user_ID: sessionStorage.user,
+
+        role: sessionStorage.role,
 
         drawer:false,
 
@@ -114,15 +135,29 @@
         options: [
          { id: 'View all surveys', name: 'View all avaliable surveys created.', href: '/admin/surveys'},
          { id: 'Edit questions', name: 'Add or delete questions.', href: '/admin/questions'},
-         { id: 'View courses', name: 'View or modify course surveys and results', href: 'admin/metric'}
+         { id: 'View courses', name: 'View or modify course surveys and results', href: '/admin/metric'}
          ],
 
         right: null,
 
         status:'Admin Login',
 
+        url:' staff_profile.jpg'
+
       }
 
+   },
+   methods: {
+      funcLogout: function (event) {
+         sessionStorage.removeItem('token');
+         sessionStorage.removeItem('user');
+         axios.get(
+            '/logout',
+         )
+         .then((response) => {
+            window.location.href = response.data;
+         })
+      }
    }
 
    })

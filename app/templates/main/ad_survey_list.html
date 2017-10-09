@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-   <title>Question Pool</title>
+   <title>Survey List</title>
 
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -28,7 +28,6 @@
       v-model="drawer"
       dark
       overflow
-
     >
       <v-list class="pa-1">
         <v-list-tile avatar>
@@ -37,9 +36,8 @@
           </v-list-tile-avatar>
           <v-list-tile-content>
 
-
             <!-- back to login page -->
-            [[user_ID]] 
+            [[user_ID]]
             <small v-if= "role === '/admin'">Admin</small>
 
           </v-list-tile-content>
@@ -58,14 +56,13 @@
         </v-list-tile>
       </v-list>
 
-      <v-btn ripple 
-             fixed 
+      <v-btn ripple
+             fixed
              bottom
              block
-             color='red' 
-             dark 
+             color='red'
+             dark
              @click = funcLogout()>Logout</v-btn>
-
 
     </v-navigation-drawer>
 
@@ -73,25 +70,32 @@
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-        <v-toolbar-title>Question Pool</v-toolbar-title>
+        <v-toolbar-title>Edit Surveys</v-toolbar-title>
       </v-toolbar>
-<!-- Dashboard Content -->
-      <main>
-         <v-content>
-          <v-container xs8 fill-height>
-            <v-layout column>
-              <h5>Select a question to edit it.</h5>
-                <hr>
 
+    <!--           Dash board content                -->
+      <main>
+        <v-content>
+        <v-container >
+          <v-layout column>
+        <!-- questions pool -->
+            <h5>Please select a survey below to edit it.</h5>
+            <hr class="style13">
 
               <v-layout row>
                 <v-flex xs12>
                   <v-list two-line>
-                    <template v-for="question in questions">
-                      <v-list-tile :href="'/admin/questions/view/'+[[question.qID]]">
+                    <template v-for="survey in surveys">
+
+      <!-- The deleted questions will be enhanced to something better maybe in iteration 3 -->
+      <!-- but the format will stay for now  -->
+      <!-- this page will communiate with the backend same as detailed page  -->
+
+      <!-- !!!!!At lease a type data must be passed to the edit page!!!!!!!!!!!   -->
+                      <v-list-tile :href="'/admin/surveys/view/'+[[survey.sID]]">
                           <v-list-tile-content>
-                            <v-list-tile-title v-html="question.qID"></v-list-tile-title>
-                            <v-list-tile-sub-title v-html="question.title"></v-list-tile-sub-title>
+                            <v-list-tile-title v-html="survey.sID"></v-list-tile-title>
+                            <v-list-tile-sub-title v-html="survey.name"></v-list-tile-sub-title>
                           </v-list-tile-content>
                         </v-list-tile-action>
                       </v-list-tile>
@@ -103,22 +107,22 @@
                     fab
                     right
                     class="pink"
-                    href="/admin/questions/create"
+                    href="/admin/surveys/create"
                     >
                     <v-icon>add</v-icon>
                     </v-btn>
                   </v-list>
                 </v-flex>
+                </v-layout>
               </v-layout>
-           </v-layout>
-        </v-content>
 
               </v-container>
+              </v-content>
 
       </main>
-      <v-footer app class = "cyan darken-3" >
-         <span class="white--text">T09B-Something</span>
-      </v-footer>
+      <v-footer app class = "cyan darken-3">
+        <span class="white--text">T09B-Something</span>
+        </v-footer>
     </v-app>
     </v-app>
   </div>
@@ -137,10 +141,11 @@
 
         role: sessionStorage.role,
 
+        //TODO: the questions deleted will be noted in the backend ? or all needs to be handled by the front end
         msg:'Please select a question below.',
 
         //TODO: type defines the type and state of a question, which 1 == normal state,2== genertic, 3== deleted optional question
-        questions: [],
+        surveys: [],
 
         drawer:false,
 
@@ -153,7 +158,6 @@
             { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
 
            ],
-        logout_href: "#",
 
         right: null,
 
@@ -164,19 +168,20 @@
 
     mounted() {
   		axios.get(
-  			'/api/question/',
+  			'/api/survey/',
   			{headers: {
   				'Authorization': 'Bearer ' + sessionStorage.token,
   			}}
   		)
   		.then((response) => {
-  			this.questions = response.data.questions
-  			// Vue.set(vm.questionPool, response.data.questions)
+  			this.surveys = response.data.surveys
+        console.log(response.data)
   		})
   	},
    methods: {
       funcLogout: function (event) {
          sessionStorage.removeItem('token');
+         sessionStorage.removeItem('user');
          axios.get(
             '/logout',
          )
