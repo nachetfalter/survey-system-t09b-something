@@ -61,6 +61,14 @@ def question_pool_api(question_id):
     return jsonify(ques.extract()), 200
 
 
+# change survey status
+@main.route('/api/survey_operation/<int:survey_id>')
+@jwt_required_at_level('Admin')
+def survey_operation_api(survey_id):
+    new_status = Survey.status_operation(survey_id)
+    return jsonify({"status": new_status}), 200
+
+
 # fetch survey list info
 @main.route('/api/survey/')
 @jwt_required_at_level('Admin')
@@ -88,18 +96,18 @@ def survey_question_api(question_id):
 
 
 # fetch survey-specified question pool
-@main.route('/api/survey/question/<int:survey_id>')
+@main.route('/api/survey_specified_question/<int:survey_id>')
 @jwt_required_at_level('Staff')
 def survey_specified_questions_api(survey_id):
     surv = Survey.load(survey_id)
     ques_all = list()
+    for ques in Question.load():
+        if ques.qID not in surv.extract().get('sqID'):
+            setattr(ques, 'sqID', None)
+            ques_all.append(ques)
     for sq_id in surv.extract().get('sqID'):
         sq_ins = Survey_Question.load(sq_id)
-        if Question.load(sq_ins.qID) is None:
-            ques_all.append(sq_ins)
-    for ques in Question.load():
-        setattr(ques, 'sqID', None)
-        ques_all.append(ques)
+        ques_all.append(sq_ins)
     return jsonify({'survey_specified_questions': [ques.extract() for ques in ques_all]}), 200
 
 

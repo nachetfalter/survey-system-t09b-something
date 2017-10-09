@@ -158,6 +158,10 @@ def ad_survey_edit(survey_id):
                     Survey_Question.new(survey_id, ques[1], ques[2])
                 else:
                     Survey_Question.update(ques[0], ques[2])
+            old_sq_li = [sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()]
+            for sq_id in old_sq_li:
+                if sq_id not in json_data.get('survey_question_id'):
+                    Survey_Question.delete(sq_id)
             return url_for('.ad_survey_list')
         return render_template('main/ad_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403
@@ -247,6 +251,11 @@ def sf_survey_edit(survey_id):
                         Survey_Question.update(ques[0], ques[2])
                     else:
                         abort(400)
+            old_sq_li = [sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()]
+            for sq_id in old_sq_li:
+                if sq_id not in json_data.get('survey_question_id') and \
+                        Survey_Question.load(sq_id).qtype == "Opt":
+                    Survey_Question.delete(sq_id)
             return url_for('.sf_survey_list')
         return render_template('main/ad_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403

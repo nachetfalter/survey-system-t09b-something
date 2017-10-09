@@ -403,6 +403,7 @@ class Survey(db.Model):
         elif data.status is 1:
             data.status = 2
         db.session.commit()
+        return data.status
 
     @staticmethod
     def update(sID, cID, name, start_date, close_date):
@@ -473,12 +474,11 @@ class Survey_Question(db.Model):
         question = Question.query.get(qID)
         qtype = question.qtype
         title = question.title
-        test = []
         result = Survey_Question(sID, qID, qtype, title, order)
         choice = Choice.query.filter_by(qID=qID).all()
         db.session.add(result)
         db.session.commit()
-        if len(test.extend(choice)) == 0:
+        if choice is None:
             Result.new(result.sqID, None)
         else:
             for i in choice:

@@ -14,7 +14,7 @@ import csv
 from app import initialize_app, sqlalchemy as db
 
 
-# TODO to be improved
+# TODO duplicates removal to be added
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -38,6 +38,7 @@ def csv_read(f_name):
 if len(sys.argv) == 2 and \
         sys.argv[1] in ['development', 'testing', 'production', 'default']:
     config = sys.argv[1]
+    os.environ['FLASK_CONFIG'] = config
 else:
     print("Usage: python3 deploy.py [development|testing|production|default]")
     sys.exit(1)
