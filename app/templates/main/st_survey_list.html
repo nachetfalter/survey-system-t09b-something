@@ -36,8 +36,8 @@
           </v-list-tile-avatar>
           <v-list-tile-content>
 
-            [[user_ID]] 
-            <small v-if= "role === '/student'">Student</small>   
+            [[user_ID]]
+            <small v-if= "role === '/student'">Student</small>
 
           </v-list-tile-content>
         </v-list-tile>
@@ -55,13 +55,13 @@
         </v-list-tile>
       </v-list>
 
-      <v-btn ripple 
-             fixed 
+      <v-btn ripple
+             fixed
              bottom
              block
-             color='red' 
-             dark 
-             @click = funcLogout()>Logout</v-btn> 
+             color='red'
+             dark
+             @click = funcLogout()>Logout</v-btn>
 
     </v-navigation-drawer>
 
@@ -163,9 +163,9 @@
   			}}
   		)
   		.then((response) => {
-        //  console.log(response.data);
-        for (var i = 0; i < response.data.survey.length; i++) {
-          app.toLoad.push(response.data.survey[i][0]);
+         console.log(response.data);
+        for (var i = 0; i < response.data.sID.length; i++) {
+          app.toLoad.push(response.data.sID[i]);
         }
         for (var i = 0; i < app.toLoad.length; i++) {
           // add if statement here to filter for surveys which are not avaliable to staff.
@@ -176,10 +176,7 @@
       			}}
           )
           .then((response) => {
-            // if (response.data.status === 1) {
-              app.surveys.push(response.data);
-            // }
-            app.surveys_all.push(response.data);
+            app.surveys.push(response.data);
           })
         }
   		})

@@ -28,6 +28,8 @@
       v-model="drawer"
       dark
       overflow
+      absolute
+      clipped
     >
       <v-list class="pa-1">
         <v-list-tile avatar>
@@ -35,11 +37,8 @@
             <img v-bind:src="url" />
           </v-list-tile-avatar>
           <v-list-tile-content>
-
-
-            [[user_ID]] 
-            <small v-if= "role === '/staff'">Staff</small>   
-
+            <!-- back to login page -->
+            <v-btn error dark @click="funcLogout()" >Logout</v-btn>
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
@@ -55,15 +54,6 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
-
-      <v-btn ripple 
-             fixed 
-             bottom
-             block
-             color='red' 
-             dark 
-             @click = funcLogout()>Logout</v-btn>  
-                
     </v-navigation-drawer>
 
 
@@ -76,12 +66,11 @@
     <!--           Dash board content                -->
       <main>
         <v-content>
-        <v-container>
+        <v-container fluid>
           <v-layout column>
         <!-- questions pool -->
             <h5>Please select a survey below to edit it.</h5>
-            <hr>
-            <br />
+            <hr class="style13">
 
               <v-layout row>
                 <v-flex xs12>
@@ -110,6 +99,10 @@
               </v-container>
               </v-content>
 
+        <!-- <v-footer class = "cyan darken-3" >
+        <span class="white--text">Build by Something</span>
+        </v-footer> -->
+
       </main>
       <v-footer app class = "cyan darken-3">
         <span class="white--text">T09B-Something</span>
@@ -127,11 +120,6 @@
     delimiters: ["[[", "]]"],
 
     data: {
-
-
-        user_ID: sessionStorage.user,
-
-        role: sessionStorage.role,
 
         //TODO: the questions deleted will be noted in the backend ? or all needs to be handled by the front end
         msg:'Please select a question below.',
@@ -164,8 +152,8 @@
   			}}
   		)
   		.then((response) => {
-        for (var i = 0; i < response.data.survey.length; i++) {
-          app.toLoad.push(response.data.survey[i][0]);
+        for (var i = 0; i < response.data.sID.length; i++) {
+          app.toLoad.push(response.data.sID[i]);
           console.log(app.toLoad);
         }
         for (var i = 0; i < app.toLoad.length; i++) {
@@ -177,7 +165,7 @@
       			}}
           )
           .then((response) => {
-            app.surveys.push(response.data);
+              app.surveys.push(response.data);
           })
         }
   		})

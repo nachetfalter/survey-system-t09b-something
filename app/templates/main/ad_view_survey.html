@@ -272,11 +272,11 @@
         		})
          },
          update: function (event) {
-           axios.post(
-             '/api/survey_operation/' + this.surveyStruct.sID, {
-               status: app.form_choice.id,
-             }
-           )
+           axios.get(
+             '/api/survey_operation/' + app.surveyStruct.sID,
+             {headers: {
+                'Authorization': 'Bearer ' + sessionStorage.token,
+             }})
            .then((response) => {
              console.log(app.form_choice.id);
            })
