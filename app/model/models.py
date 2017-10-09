@@ -301,7 +301,7 @@ class Choice(db.Model):
     def new(qID, cho_con, order):
         result = Choice(qID, cho_con, order)
         db.session.add(result)
-        question = Question.load(qID)
+        question = Question.query.get(qID)
         question.cho_num += 1
         db.session.commit()
         return result.chID
@@ -475,10 +475,10 @@ class Survey_Question(db.Model):
         title = question.title
         result = Survey_Question(sID, qID, qtype, title, order)
         choice = Choice.query.filter_by(qID=qID).all()
-        for i in choice:
-            db.session.add(Result.new(result.sqID, i.chID))
         db.session.add(result)
         db.session.commit()
+        for i in choice:
+            Result.new(result.sqID, i.chID)
         return result.sqID
 
     @staticmethod
@@ -555,7 +555,7 @@ class Result(db.Model):
         order = choice.order
         result = Result(sqID, cho_con, order)
         db.session.add(result)
-        question = Survey_Question.load(sqID)
+        question = Survey_Question.query.get(sqID)
         question.cho_num += 1
         db.session.commit()
 
