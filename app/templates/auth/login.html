@@ -78,6 +78,7 @@
             alert: false
          },
          methods: {
+
              getFormValues: function() {
                 axios.post('/api/auth/gen', {
                   username: this.username,
@@ -94,13 +95,17 @@
                      window.location.replace("/staff");
                   }
                 */
+                    console.log(response.data);
                     var token = response.data.token;
                     sessionStorage.setItem('token', token);
+                    sessionStorage.setItem('user', vm.username);
                     axios.post('/login', {
                         token: token
                     })
                     .then(function (response) {
+                        sessionStorage.setItem('role', response.data);
                         window.location.href = response.data;
+
                         //vm.$router.push({ path: response.data })
                         // document.querySelector('#errormsg').innerText = localStorage.getItem('token')
                     })
