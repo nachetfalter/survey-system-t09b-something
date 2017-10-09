@@ -473,12 +473,16 @@ class Survey_Question(db.Model):
         question = Question.query.get(qID)
         qtype = question.qtype
         title = question.title
+        test = []
         result = Survey_Question(sID, qID, qtype, title, order)
         choice = Choice.query.filter_by(qID=qID).all()
         db.session.add(result)
         db.session.commit()
-        for i in choice:
-            Result.new(result.sqID, i.chID)
+        if len(test.extend(choice)) == 0:
+            Result.new(result.sqID, None)
+        else:
+            for i in choice:
+                Result.new(result.sqID, i.chID)
         return result.sqID
 
     @staticmethod
@@ -550,13 +554,17 @@ class Result(db.Model):
 
     @staticmethod
     def new(sqID, chID):
-        choice = Choice.query.get(chID)
-        cho_con = choice.cho_con
-        order = choice.order
-        result = Result(sqID, cho_con, order)
-        db.session.add(result)
-        question = Survey_Question.query.get(sqID)
-        question.cho_num += 1
+        if chID is None:
+            result = Result(sqID, None, 0)
+            db.session.add(result)
+        else:
+            choice = Choice.query.get(chID)
+            cho_con = choice.cho_con
+            order = choice.order
+            result = Result(sqID, cho_con, order)
+            db.session.add(result)
+            question = Survey_Question.query.get(sqID)
+            question.cho_num += 1
         db.session.commit()
 
     @staticmethod
