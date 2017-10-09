@@ -154,15 +154,15 @@ def ad_survey_edit(survey_id):
             ques_all = list(zip(json_data.get('survey_question_id'),
                                 json_data.get('question_id'),
                                 [i+1 for i in range(len(json_data.get('question_id')))]))
+            old_sq = set([sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()])
+            del_sq = old_sq - set(json_data.get('survey_question_id'))
+            for sq_id in del_sq:
+                Survey_Question.delete(sq_id)
             for ques in ques_all:
                 if ques[0] is None:
                     Survey_Question.new(survey_id, ques[1], ques[2])
                 else:
                     Survey_Question.update(ques[0], ques[2])
-            old_sq_li = [sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()]
-            for sq_id in old_sq_li:
-                if sq_id not in json_data.get('survey_question_id'):
-                    Survey_Question.delete(sq_id)
             return url_for('.ad_survey_list')
         return render_template('main/ad_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403
@@ -241,6 +241,11 @@ def sf_survey_edit(survey_id):
             ques_all = list(zip(json_data.get('survey_question_id'),
                                 json_data.get('question_id'),
                                 [i+1 for i in range(len(json_data.get('question_id')))]))
+            old_sq = set([sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()])
+            del_sq = old_sq - set(json_data.get('survey_question_id'))
+            for sq_id in del_sq:
+                if Survey_Question.load(sq_id).qtype == "Opt":
+                    Survey_Question.delete(sq_id)
             for ques in ques_all:
                 if ques[0] is None:
                     if Question.load(ques[1]).qtype == "Opt":
@@ -252,11 +257,6 @@ def sf_survey_edit(survey_id):
                         Survey_Question.update(ques[0], ques[2])
                     else:
                         abort(400)
-            old_sq_li = [sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()]
-            for sq_id in old_sq_li:
-                if sq_id not in json_data.get('survey_question_id') and \
-                        Survey_Question.load(sq_id).qtype == "Opt":
-                    Survey_Question.delete(sq_id)
             return url_for('.sf_survey_list')
         return render_template('main/ad_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403

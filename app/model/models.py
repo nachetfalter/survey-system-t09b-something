@@ -91,7 +91,7 @@ class User(db.Model, UserMixin):
         dic.pop('_sa_instance_state', None)
         course = Enrolment.query.filter_by(zID=self.zID).all()
         if len(course) == 0:
-            dic['survey'] = []
+            dic['sID'] = []
             return dic
         else:
             dummy = []
@@ -99,11 +99,10 @@ class User(db.Model, UserMixin):
             for i in course:
                 dummy.append(getattr(Survey.query.filter_by(cID=i.cID).first(), 'sID', None))
             for i in dummy:
-                dummy_list = []
+                survey = []
                 if Answer_Record.check(self.zID, i) != 1:
-                    dummy_list.append(i)
-                survey.append(dummy_list)
-            dic['survey'] = survey
+                    survey.append(i)
+            dic['sID'] = survey
             return dic
 
     # Boolean check the authority of the user.
@@ -516,7 +515,7 @@ class Survey_Question(db.Model):
         return dic
 
     @staticmethod
-    def delete(sqID=None):
+    def delete(sqID):
         data = db_load(Survey_Question, sqID)
         db.session.delete(data)
         db.session.commit()

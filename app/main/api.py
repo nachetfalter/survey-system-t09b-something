@@ -58,15 +58,20 @@ def question_pool_all_api():
 @jwt_required_at_level('Admin')
 def question_pool_api(question_id):
     ques = Question.load(question_id)
-    return jsonify(ques.extract()), 200
+    if ques is not None:
+        return jsonify(ques.extract()), 200
+    return jsonify({"Error": "Not Found"}), 404
 
 
 # change survey status
 @main.route('/api/survey_operation/<int:survey_id>')
 @jwt_required_at_level('Admin')
 def survey_operation_api(survey_id):
-    new_status = Survey.status_operation(survey_id)
-    return jsonify({"status": new_status}), 200
+    surv = Survey.load(survey_id)
+    if surv is not None:
+        new_status = Survey.status_operation(survey_id)
+        return jsonify({"status": new_status}), 200
+    return jsonify({"Error": "Not Found"}), 404
 
 
 # fetch survey list info
@@ -83,7 +88,9 @@ def survey_all_api():
 @jwt_required
 def survey_api(survey_id):
     surv = Survey.load(survey_id)
-    return jsonify(surv.extract()), 200
+    if surv is not None:
+        return jsonify(surv.extract()), 200
+    return jsonify({"Error": "Not Found"}), 404
 
 
 # TODO add status check
@@ -92,7 +99,9 @@ def survey_api(survey_id):
 @jwt_required
 def survey_question_api(question_id):
     ques = Survey_Question.load(question_id)
-    return jsonify(ques.extract()), 200
+    if ques is not None:
+        return jsonify(ques.extract()), 200
+    return jsonify({"Error": "Not Found"}), 404
 
 
 # fetch survey-specified question pool
@@ -100,6 +109,8 @@ def survey_question_api(question_id):
 @jwt_required_at_level('Staff')
 def survey_specified_questions_api(survey_id):
     surv = Survey.load(survey_id)
+    if surv is None:
+        return jsonify({"Error": "Not Found"}), 404
     ques_all = list()
     for ques in Question.load():
         if ques.qID not in surv.extract().get('sqID'):
@@ -116,9 +127,12 @@ def survey_specified_questions_api(survey_id):
 @main.route('/api/result/question/<int:question_id>')
 @jwt_required
 def question_result_api(question_id):
-    ques = Survey_Question.load(question_id).extract()
+    ques = Survey_Question.load(question_id)
+    if ques is None:
+        return jsonify({"Error": "Not Found"}), 404
+    ques_dict = ques.extract()
     choi_all = list()
-    for choi_id in ques.get('chID'):
+    for choi_id in ques_dict.get('chID'):
         choi = Result.load(choi_id).extract()
         choi_all.append(choi)
     return jsonify({'results': choi_all}), 200
@@ -129,9 +143,12 @@ def question_result_api(question_id):
 @main.route('/api/result/survey/<int:survey_id>')
 @jwt_required
 def survey_result_api(survey_id):
-    surv = Survey.load(survey_id).extract()
+    surv = Survey.load(survey_id)
+    if surv is None:
+        return jsonify({"Error": "Not Found"}), 404
+    surv_dict = surv.extract()
     ques_all_url = list()
-    for ques_id in surv.get('sqID'):
+    for ques_id in surv_dict.get('sqID'):
         ques = url_for('.question_result_api', question_id=ques_id)
         ques_all_url.append(ques)
     return jsonify({'results_url': ques_all_url}), 200
