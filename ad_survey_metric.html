@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<head>
+   <title>View Results</title>
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
+   <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
+   <!-- <script src="https://unpkg.com/vue"></script> -->
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js"></script>
+    <script src="https://unpkg.com/vue-chart-js"></script>
+</head>
+
+
+
+<body>
+  <div id="app">
+    <v-app id="inspire">
+      <v-app id="tool_bar" toolbar footer>
+
+    <!--           navigation drawer definition              -->
+    <v-navigation-drawer
+      temporary
+      v-model="drawer"
+      dark
+      overflow
+    >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-avatar>
+            <img v-bind:src="url" />
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+
+            [[user_ID]]
+            <small v-if= "role === '/admin'">Admin</small>
+
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+      <v-list class="pt-0" dense>
+        <v-divider></v-divider>
+        <!-- this is to link side icons -->
+        <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+          <v-list-tile-action>
+            <v-icon>[[item.icon]]</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>[[item.title]]</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+
+      <v-btn ripple
+             fixed
+             bottom
+             block
+             color='red'
+             dark
+             @click = funcLogout() >Logout</v-btn>
+    </v-navigation-drawer>
+
+
+    <!--           Tool bar code and definition              -->
+      <v-toolbar class="cyan darken-3" dark fixed app>
+
+      <v-btn icon class="hidden-xs-only" :href= "'/admin/result'">
+            <v-icon>arrow_back</v-icon>
+          </v-btn>
+
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>View Result</v-toolbar-title>
+      </v-toolbar>
+
+    <!--           Dash board content                -->
+    <main>
+      <v-content>
+        <br />
+      <v-container xs2 elevation-3>
+        <v-layout column>
+        <v-layout row>
+          <v-flex xs12>
+            <v-list>            
+              <v-subheader>Questions</v-subheader>
+                <template v-for="question in questions">
+                    <v-list-tile :href="'/admin/metric/'+[[page]]+'/'+[[question.sqID]]">
+                      <v-list-tile-sub-title>[[question.title]]</v-list-tile-sub-title>
+                    </v-list-tile>
+                </template>
+
+            </v-list>
+
+          </v-flex>
+
+        </v-layout>
+      </v-container>
+
+      <br />
+      </v-layout>
+      </v-content>
+		</main>
+      <v-footer app class = "cyan darken-3" >
+        <v-spacer></v-spacer>
+         <span class="white--text">T09B-Something</span>
+      </v-footer>
+		</v-app>
+	 </v-app>
+  </div>
+
+  <script>
+    Vue.use(VueChart.default)
+    var app = new Vue({
+
+      el: '#app',
+
+      delimiters: ["[[", "]]"],
+
+      data: {
+
+          user_ID: sessionStorage.user,
+
+          role: sessionStorage.role,
+
+          msg:'Please select a question below.',
+
+          drawer:false,
+          dialog: false,
+          //icons to be displaced in drawer
+          items: [
+
+              { title: 'Dashboard', icon: 'dashboard',href:'/admin' },
+              { title: 'Surveys', icon: 'book',href:'/admin/surveys' },
+              { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
+              { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
+
+             ],
+
+          right: null,
+
+          url:'static/staff_profile.jpg',
+          page: '',
+
+          questions: [],
+
+      },
+
+      mounted() {
+          var last = document.URL.substring(document.URL.lastIndexOf("/") + 1, document.URL.length);
+          this.page = last,
+          axios.get(
+      			'/api/survey/'+last,
+      			{headers: {
+      				'Authorization': 'Bearer ' + sessionStorage.token,
+      			}}
+      		)
+      		.then((response) => {
+      			this.surveyStruct = response.data
+            console.log(response.data)
+      			// Vue.set(vm.questionPool, response.data.questions)
+            for (var i = 0; i < this.surveyStruct.sqID.length; i++) {
+               axios.get(
+                 '/api/survey_question/'+this.surveyStruct.sqID[i],
+                 {headers: {
+           				'Authorization': 'Bearer ' + sessionStorage.token,
+           			}}
+               )
+               .then((response) => {
+                     this.questions.push(response.data);
+               })
+            }
+            console.log(this.questions);
+      		})
+      	},
+      methods: {
+         funcLogout: function (event) {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            axios.get(
+               '/logout',
+            )
+            .then((response) => {
+               window.location.href = response.data;
+            })
+         },
+         deleteQues: function (event) {
+            axios.get(
+        			'/admin/questions/delete/'+ app.questionStruct.qID,
+        			{headers: {
+        				'Authorization': 'Bearer ' + sessionStorage.token,
+        			}}
+        		)
+            .then((response) => {
+              window.location.href = response.data
+        		})
+         },
+      }
+    });
+
+  </script>
+  </body>

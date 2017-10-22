@@ -1,0 +1,202 @@
+<!-- Basic template for staff dashboard, data used are dummys  -->
+<!-- Made by Even Tang -->
+<!-- September 2017 -->
+
+<!DOCTYPE html>
+<head>
+   <title>Student Dashboard</title>
+
+    <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+    </style>
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
+   <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
+   <!-- <script src="https://unpkg.com/vue"></script> -->
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+
+</head>
+
+  <div id="app">
+  <template>
+    <v-app id="inspire">
+      <v-app id="tool_bar" toolbar footer>
+
+    <!--           navigation drawer definition              -->
+    <v-navigation-drawer
+      temporary
+      v-model="drawer"
+      dark
+      overflow
+    >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-avatar>
+            <img v-bind:src="url" />
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+            <!-- back to login page -->
+
+            [[user_ID]]
+            <small v-if= "role === '/student'">Student</small>
+
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+      <v-list class="pt-0" dense>
+        <v-divider></v-divider>
+        <!-- this is to link side icons -->
+        <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+          <v-list-tile-action>
+            <v-icon>[[item.icon]]</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>[[item.title]]</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+
+      <v-btn ripple
+             fixed
+             bottom
+             block
+             color='red'
+             dark
+             @click = funcLogout()>Logout</v-btn>
+
+    </v-navigation-drawer>
+
+
+    <!--           Tool bar code and definition              -->
+      <v-toolbar app class="cyan darken-3" dark fixed app>
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>Student Dashboard</v-toolbar-title>
+      </v-toolbar>
+
+    <!--           Dash board content                -->
+    <main>
+
+      <v-content>
+        <br />
+        <v-container>
+       	<!-- message -->
+       	<v-layout column>
+
+       	<h5>[[msg]]</h5>
+        <hr class="style14">
+        <br />
+
+          <v-layout row>
+                <v-flex xs12>
+                  <v-list two-line>
+                    <template v-for="option in options">
+                      <v-list-tile :href="option.href">
+                        <v-list-tile-action>
+                          <v-list-tile-content>
+                            <v-list-tile-title v-html="option.id"></v-list-tile-title></v-list-tile-title>
+                            <v-list-tile-sub-title v-html="option.name"></v-list-tile-sub-title>
+                          </v-list-tile-content>
+                        </v-list-tile-action>
+                      </v-list-tile>
+
+                    </template>
+                  </v-list>
+                </v-flex>
+              </v-layout>
+            </v-layout>
+        </v-container>
+      </v-content>
+    </main>
+
+      <v-footer app class = "cyan darken-3" >
+        <v-spacer></v-spacer>
+      <span class="white--text">T09B-Something</span>
+      </v-footer>
+
+    </v-app>
+    </v-app>
+    </template>
+
+  </div>
+
+
+<script>
+
+  var app = new Vue({
+
+    el: '#app',
+
+    delimiters: ["[[", "]]"],
+
+    data: {
+
+        user_ID: sessionStorage.user,
+
+        role: sessionStorage.role,
+
+        drawer:false,
+
+        //icons to be displaced in drawer
+        items: [
+
+          { title: 'Home', icon: 'dashboard',href: '/student'},
+          { title: 'All Surveys', icon: 'book',href:'/student/surveys'},
+          { title: 'Metrics', icon: 'book',href:'/student/metric'},
+
+        ],
+        logout_href: "#",
+
+        right: null,
+
+        url:'staff_profile.jpg',
+
+        //TODO: discussion
+        msg:'Welcome, please choose the options listed below',
+
+        options: [
+        { id: 'View all surveys', name: 'View all avaliable survey created.',href: '/student/surveys'},
+        { id: 'View results', name: 'View results to closed surveys.',href: '/student/metric'},
+
+        ],
+
+
+    },
+    methods: {
+
+        link(n){
+
+          window.location.replace(n)
+
+        },
+
+        funcLogout: function (event) {
+             sessionStorage.removeItem('token');
+             sessionStorage.removeItem('user');
+             axios.get(
+               '/logout',
+            )
+            .then((response) => {
+               window.location.href = response.data;
+            })
+        }
+    }
+
+
+  })
+
+
+</script>

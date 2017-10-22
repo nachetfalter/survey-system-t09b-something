@@ -1,0 +1,337 @@
+
+<!-- no previous question button -->
+<!-- what to do if user exits answering question by clicking on dashboard -->
+
+<!DOCTYPE html>
+<head>
+   <title>Answer question</title>
+
+  <style>
+
+    hr.style14 { 
+      border: 0; 
+      height: 1px; 
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0); 
+    }
+
+    </style>
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
+   <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
+   <!-- <script src="https://unpkg.com/vue"></script> -->
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+
+</head>
+
+
+<body>
+
+  <div id="app">
+
+    <template>
+    <v-app id="inspire">
+      <v-app id="tool_bar" toolbar footer>
+
+    <!--           navigation drawer definition              -->
+    <v-navigation-drawer
+      temporary
+      v-model="drawer"
+      dark
+      overflow
+    >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-avatar>
+            <img v-bind:src="url" />
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+            
+            [[user_ID]] 
+            <small v-if= "role === '/student'">Student</small> 
+
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+      <v-list class="pt-0" dense>
+        <v-divider></v-divider>
+        <!-- this is to link side icons -->
+        <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+          <v-list-tile-action>
+            <v-icon>[[item.icon]]</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>[[item.title]]</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+
+      <v-btn ripple 
+             fixed 
+             bottom
+             block
+             color='red' 
+             dark 
+             @click = funcLogout()>Logout</v-btn> 
+    </v-navigation-drawer>
+
+
+    <!--           Tool bar code and definition              -->
+      <v-toolbar class="cyan darken-3" dark fixed app>
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>Answer</v-toolbar-title>
+      </v-toolbar>
+
+    <!--           Dash board content                -->
+    <main>
+
+      <v-content>
+        <br />
+        <v-container xs2 elevation-3>
+        <!-- message -->
+        <v-layout column>
+
+        <br />
+        <h5>[[msg]]</h5>
+
+        <hr class="style14">
+        <br />
+
+        <!-- There is a change in the usage of elements from radio forms to list -->
+        <h6>Question: [[q_data.title]]</h6>
+
+
+        <v-layout column>
+
+      <div v-if="mcq">
+
+        <v-flex xs10 offset-xs1>
+        <div v-for = "(cho_con, index) in q_data.cho_con">
+          <input v-model="selected_ID" name="selected_ID" type=radio v-bind:value="q_data.chID[index]" />
+          <label>[[cho_con]]</label>
+        </div>
+      </v-flex>
+      </div>
+      <div v-else>
+
+        <v-flex xs10 offset-xs1>
+        <v-text-field
+             name="input-7-1"
+             label="Please enter your answer here"
+             v-model = "selected_ID"
+             multi-line
+        ></v-text-field>
+      </v-flex>
+      <br />
+
+      </div>
+
+
+    	</v-layout>
+
+        <div v-if="lastq == 0">
+          <v-btn color = 'blue' @click = check() >Next Question</v-btn>
+        </div>
+
+        <div v-else>
+          <v-btn color = 'green' @click = check() >Submit</v-btn>
+        </div>
+        </v-layout>
+
+        </v-container>
+
+      </v-content>    
+
+      </main>
+
+      <v-alert info dismissible
+               error
+               v-model="alert"
+               transition="scale-transition"
+               fixed>
+               Please check that the question displayed aboved has been filled out correcly
+      </v-alert>  
+
+      <v-footer app class = "cyan darken-3" >
+        <v-spacer></v-spacer>
+      <span class="white--text">T09B-Something</span>
+      </v-footer>
+
+    </v-app>
+    </v-app>
+    </template>
+  </div>
+
+<script>
+
+  var app = new Vue({
+
+    el: '#app',
+
+    delimiters: ["[[", "]]"],
+
+    data: {
+
+      user_ID: sessionStorage.user,
+
+      role: sessionStorage.role,
+
+    	something: 'this is shit',
+
+        alert: false,
+
+        //Those must result from back end, however, question ID and data has to come from previous page
+        //TODO link the pages and data
+        //selected ID have all data selected and needed for the form
+
+        q_title: '',
+
+        q_ID_backend:1,
+        mcq: '',
+        selected_ID: null,
+        q_data: [],
+        s_data: [],
+
+        lastq: 0,
+
+        msg:'Answer question ',
+
+        drawer:false,
+
+        //icons to be displaced in drawer
+        items: [
+
+          { title: 'Home', icon: 'dashboard',href: '/student'},
+          { title: ' All Surveys', icon: 'book',href:'/student/surveys'},
+
+        ],
+        logout_href: "#",
+        test: [1,2,3],
+        right: null,
+
+        url:'static/staff_profile.jpg',
+
+        //TODO: discussion
+
+        survey_ID: parseInt(document.URL.substring(document.URL.lastIndexOf("/") - 1, document.URL.length)),
+        question_ID: parseInt(document.URL.substring(document.URL.lastIndexOf("/") + 1, document.URL.length)),
+        index: '',
+        next_ID: '',
+    },
+    mounted() {
+      axios.get(
+  			'/api/survey/' + this.survey_ID, //modify this for dynamic
+  			{headers: {
+  				'Authorization': 'Bearer ' + sessionStorage.token,
+  			}}
+  		)
+  		.then((response) => {
+        this.s_data = response.data;
+        this.index = this.s_data.sqID.indexOf(this.question_ID,0)
+        if (this.index === this.s_data.sqID.length-1) {
+          console.log(this.s_data.sqID.indexOf(this.ID,0));
+          this.lastq = 1;
+        } else {
+          this.next_ID = this.s_data.sqID[this.index+1];
+        }
+      })
+  		axios.get(
+  			'/api/survey_question/' + this.question_ID, //modify this for dynamic
+  			{headers: {
+  				'Authorization': 'Bearer ' + sessionStorage.token,
+  			}}
+  		)
+  		.then((response) => {
+        console.log(response.data),
+        this.q_data = response.data;
+        if (this.q_data.cho_con[0] == null) {
+          this.mcq = 0;
+        } else {
+          this.mcq = 1;
+        }
+      })
+
+
+  	},
+    methods: {
+
+        link(n){
+
+          window.location.replace(n)
+
+        },
+        check(){
+
+          if(this.selected_ID == null){
+
+            app.alert = true;
+
+          }else{
+            var a = [];
+            a = JSON.parse(sessionStorage.getItem('q_ID'));
+            a.push(this.question_ID);
+            sessionStorage.setItem('q_ID', JSON.stringify(a));
+
+            var b = [];
+            b = JSON.parse(sessionStorage.getItem('ch_ID'));
+            if (this.mcq === 0) {
+              b.push(app.q_data.chID[0])
+            } else {
+              b.push(this.selected_ID);
+            }
+
+
+            sessionStorage.setItem('ch_ID', JSON.stringify(b));
+
+            var c = [];
+            c = JSON.parse(sessionStorage.getItem('answer'));
+            if (this.selected_ID === parseInt(this.selected_ID, 10)) {
+              c.push(JSON.stringify(this.selected_ID));
+            } else {
+              c.push(this.selected_ID);
+            }
+            sessionStorage.setItem('answer', JSON.stringify(c));
+
+            if (this.lastq === 0) {
+              window.location.href = "/student/surveys/" + this.survey_ID + "/" + this.next_ID;
+            } else {
+              axios.post(
+          			'/student/surveys/' + this.survey_ID + '/' + this.question_ID, {
+                 question_id: JSON.parse(sessionStorage.getItem('q_ID')),
+                 choice_id: JSON.parse(sessionStorage.getItem('ch_ID')),
+                 answer: JSON.parse(sessionStorage.getItem('answer')),
+                }
+          		)
+          		.then((response) => {
+                window.location.href = response.data;
+              })
+
+            }
+          }
+
+
+        },
+        funcLogout: function (event) {
+           sessionStorage.removeItem('token');
+           sessionStorage.removeItem('user');
+           axios.get(
+               '/logout',
+           )
+          .then((response) => {
+             window.location.href = response.data;
+         })
+        }
+    }
+
+  })
+
+
+</script>
+</body>
