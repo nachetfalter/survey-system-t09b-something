@@ -52,7 +52,9 @@ class User(db.Model, UserMixin):
     __tablename__ = "User"
     zID = db.Column("zID", db.Text, primary_key=True, autoincrement=False)
     _password = db.Column("password", db.Binary(60), nullable=False)
-    auth = db.Column("auth", db.String(7), CheckConstraint('auth == "Student" or auth == "Admin" or auth == "Staff"'))
+    auth = db.Column("auth", db.String(7),
+                     CheckConstraint('auth == "Student"\
+                                     or auth == "Admin" or auth == "Staff"'))
 
     def __init__(self, zID, password_text, auth):
         self.zID = zID
@@ -84,29 +86,27 @@ class User(db.Model, UserMixin):
     def load(zID=None):
         return db_load(User, zID)
 
-    # This method will return all elements in User as a dict with a new element 'cID'
+    # This method will return all elements in User as a dict with
+    # a new element 'cID'
     # Which contains all courses id this user is enrolled in. Admin has none.
     def extract(self):
         dic = dict(self.__dict__)
         dic.pop('_sa_instance_state', None)
         course = Enrolment.query.filter_by(zID=self.zID).all()
         if len(course) == 0:
-            dic['survey'] = []
+            dic['sID'] = []
             return dic
         else:
             dummy = []
             survey = []
             for i in course:
-                dummy.append(getattr(Survey.query.filter_by(cID=i.cID).first(), 'sID', None))
+                dummy.append(getattr(Survey.query.
+                             filter_by(cID=i.cID).first(), 'sID', None))
             for i in dummy:
-                dummy_list = []
-                dummy_list.append(i)
-                if Answer_Record.check(self.zID, i) == 1:
-                    dummy_list.append(1)
-                else:
-                    dummy_list.append(0)
-                survey.append(dummy_list)
-            dic['survey'] = survey
+                survey = []
+                if Answer_Record.check(self.zID, i) != 1:
+                    survey.append(i)
+            dic['sID'] = survey
             return dic
 
     # Boolean check the authority of the user.
@@ -126,9 +126,9 @@ class User(db.Model, UserMixin):
 
     @staticmethod
     def update(zID, password, auth):
-        target = User.query.get(zID)
-        target.password = password
-        target.auth = auth
+        data = User.query.get(zID)
+        data.password = password
+        data.auth = auth
         db.session.commit()
 
 
@@ -143,8 +143,12 @@ class User(db.Model, UserMixin):
 class Enrolment(db.Model):
 
     __tablename__ = "Enrolment"
-    zID = db.Column("zID", db.Text, db.ForeignKey('User.zID', ondelete='CASCADE'), primary_key=True)
-    cID = db.Column("cID", db.Integer, db.ForeignKey('Course.cID', ondelete='CASCADE'), primary_key=True)
+    zID = db.Column("zID", db.Text,
+                    db.ForeignKey('User.zID', ondelete='CASCADE'),
+                    primary_key=True)
+    cID = db.Column("cID", db.Integer,
+                    db.ForeignKey('Course.cID', ondelete='CASCADE'),
+                    primary_key=True)
 
     def __init__(self, zID, cID):
         self.zID = zID
@@ -157,7 +161,7 @@ class Enrolment(db.Model):
         db.session.commit()
 
     @staticmethod
-    def load(zID, cID):
+    def load(zID=None, cID=None):
         return db_load(Enrolment, [zID, cID])
 
 
@@ -201,20 +205,21 @@ class Course(db.Model):
         db.session.commit()
 
 
-#qtype is about whether this question is considered as a generic question or
-#a optional question. The title of the question has a limit of 80 characters
+# qtype is about whether this question is considered as a generic question or
+# a optional question. The title of the question has a limit of 80 characters
 class Question(db.Model):
 
     __tablename__ = "Question"
     qID = db.Column("qID", db.Integer, primary_key=True, autoincrement=True)
-    qtype = db.Column("qtype", db.String(3), CheckConstraint('qtype == "Opt" or qtype == "Gne"'), default='Gne')
-    title = db.Column("title", db.String(80), nullable=False)
-    cho_num = db.Column("cho_num", db.Integer, default=0)
+    qtype = db.Column("qtype", db.String(3),
+                      CheckConstraint('qtype == "Opt" \
+                                      or qtype == "Gne"'), default='Gne')
+    title = db.Column("title", db.Text, nullable=False)
+    cho_num = db.Column("cho_num", db.Integer, default=0, nullable=False)
 
     def __init__(self, qtype, title):
         self.qtype = qtype
         self.title = title
-        self.cho_num = 0
 
     @staticmethod
     def new(qtype, title):
@@ -271,25 +276,26 @@ class Question(db.Model):
 
     @staticmethod
     def update(qID, qtype, title):
-        target = Question.query.get(qID)
-        target.qtype = qtype
-        target.title = title
+        data = db_load(Question, qID)
+        data.qtype = qtype
+        data.title = title
         link = Survey_Question.query.filter_by(qID=qID).all()
         for i in link:
             i.qID = None
         db.session.commit()
 
 
-#Choice is also a bridge entity used to break the mn relationship between
-#question and its choice contents. cho_con = choice content
-#Weak entity
+# Choice is also a bridge entity used to break the mn relationship between
+# question and its choice contents. cho_con = choice content
+# Weak entity
 class Choice(db.Model):
 
     __tablename__ = "Choice"
     chID = db.Column("chID", db.Integer, primary_key=True, autoincrement=True)
-    qID = db.Column("qID", db.Integer, db.ForeignKey('Question.qID', ondelete='CASCADE'))
+    qID = db.Column("qID", db.Integer,
+                    db.ForeignKey('Question.qID', ondelete='CASCADE'))
     cho_con = db.Column("cho_con", db.Text)
-    order = db.Column("order", db.Integer)
+    order = db.Column("order", db.Integer, nullable=False)
 
     def __init__(self, qID, cho_con, order):
         self.qID = qID
@@ -301,7 +307,7 @@ class Choice(db.Model):
     def new(qID, cho_con, order):
         result = Choice(qID, cho_con, order)
         db.session.add(result)
-        question = Question.query.get(qID)
+        question = db_load(Question, qID)
         question.cho_num += 1
         db.session.commit()
         return result.chID
@@ -319,7 +325,7 @@ class Choice(db.Model):
     @staticmethod
     def delete(chID):
         data = db_load(Choice, chID)
-        Question.query.get(data.qID).cho_num -= 1
+        db_load(Question, data.qID).cho_num -= 1
         link = Survey_Question.query.filter_by(qID=data.qID).all()
         for i in link:
             i.qID = None
@@ -328,27 +334,30 @@ class Choice(db.Model):
 
     @staticmethod
     def update(chID, cho_con, order):
-        target = Choice.query.get(chID)
-        target.cho_con = cho_con
-        target.order = order
-        link = Survey_Question.query.filter_by(qID=target.qID).all()
+        data = db_load(Choice, chID)
+        data.cho_con = cho_con
+        data.order = order
+        link = Survey_Question.query.filter_by(qID=data.qID).all()
         for i in link:
             i.qID = None
         db.session.commit()
 
 
-#Con is a boolean indicate whether the survey is online or not
+# Con is a boolean indicate whether the survey is online or not
 class Survey(db.Model):
 
     __tablename__ = "Survey"
     sID = db.Column("sID", db.Integer, primary_key=True, autoincrement=True)
-    cID = db.Column("cID", db.Integer, db.ForeignKey('Course.cID', ondelete='CASCADE'))
+    cID = db.Column("cID", db.Integer,
+                    db.ForeignKey('Course.cID', ondelete='CASCADE'))
     name = db.Column("name", db.Text, nullable=False)
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow())
+    create_date = db.Column("create_date", db.DateTime,
+                            default=datetime.utcnow())
     start_date = db.Column("start_date", db.DateTime)
-    update_date = db.Column("update_date", db.DateTime, default=datetime.utcnow())
+    update_date = db.Column("update_date", db.DateTime,
+                            default=datetime.utcnow())
     close_date = db.Column("close_date", db.DateTime)
-    status = db.Column("status", db.Integer, default=0)
+    status = db.Column("status", db.Integer, default=0, nullable=False)
 
     def __init__(self, cID, name, start_date, close_date):
         self.cID = cID
@@ -403,27 +412,30 @@ class Survey(db.Model):
         elif data.status is 1:
             data.status = 2
         db.session.commit()
+        return data.status
 
     @staticmethod
     def update(sID, cID, name, start_date, close_date):
-        target = Survey.query.get(sID)
-        target.name = name
-        target.cID = cID
-        target.start_date = start_date
-        target.close_date = close_date
-        target.update_date = datetime.utcnow()
+        data = db_load(Survey, sID)
+        data.name = name
+        data.cID = cID
+        data.start_date = start_date
+        data.close_date = close_date
+        data.update_date = datetime.utcnow()
         db.session.commit()
 
 
-#Answer record is used to prevent the same person from doing the survey again.
-#Record is a boolean which indicates whether this person has done the survey
-#You shouldn't touch the methods here as it is for internal use.
-#Weak entity
+# Answer record is used to prevent the same person from doing the survey again.
+# Record is a boolean which indicates whether this person has done the survey
+# You shouldn't touch the methods here as it is for internal use.
+# Weak entity
 class Answer_Record(db.Model):
 
     __tablename__ = "Answer_Record"
-    zID = db.Column("zID", db.Text, db.ForeignKey('User.zID', ondelete='CASCADE'), primary_key=True, autoincrement=False)
-    sID = db.Column("cID", db.Integer, db.ForeignKey('Survey.sID', ondelete='CASCADE'), primary_key=True, autoincrement=False)
+    zID = db.Column("zID", db.Text, db.ForeignKey('User.zID',
+                    ondelete='CASCADE'), primary_key=True, autoincrement=False)
+    sID = db.Column("cID", db.Integer, db.ForeignKey('Survey.sID',
+                    ondelete='CASCADE'), primary_key=True, autoincrement=False)
 
     def __init__(self, zID, sID):
         self.zID = zID
@@ -435,50 +447,56 @@ class Answer_Record(db.Model):
         db.session.add(result)
         db.session.commit()
 
-    # There is no reason what so ever you should need load or extract this class
+    # There is no reason what so ever you should
+    # need load or extract this class
     # Therefore I only added one for you to check for record and return Boolean
     @staticmethod
     def check(zID, sID):
-        target = None
-        target = db_load(Answer_Record, [zID, sID])
-        if target is None:
+        data = None
+        data = db_load(Answer_Record, [zID, sID])
+        if data is None:
             return False
         else:
             return True
 
 
-#Survey question is used to store questions in surveys to avoid situation where
-#certain questions are deleted from the question pool.
+# Survey question is used to store questions in
+# surveys to avoid situation where
+# certain questions are deleted from the question pool.
 class Survey_Question(db.Model):
 
     __tablename__ = "Survey_Question"
     sqID = db.Column("sqID", db.Integer, primary_key=True, autoincrement=True)
-    sID = db.Column("sID", db.Integer, db.ForeignKey('Survey.sID', ondelete='CASCADE'))
+    sID = db.Column("sID", db.Integer,
+                    db.ForeignKey('Survey.sID', ondelete='CASCADE'))
     qID = db.Column("qID", db.Integer)
-    qtype = db.Column("qtype", db.String(3), CheckConstraint('qtype == "Opt" or qtype == "Gne"'))
-    title = db.Column("title", db.String(80), nullable=False)
-    cho_num = db.Column("cho_num", db.Integer, default=0)
-    order = db.Column("order", db.Integer)
+    qtype = db.Column("qtype", db.String(3),
+                      CheckConstraint('qtype == "Opt" or qtype == "Gne"'))
+    title = db.Column("title", db.Text, nullable=False)
+    cho_num = db.Column("cho_num", db.Integer, default=0, nullable=False)
+    order = db.Column("order", db.Integer, nullable=False)
 
     def __init__(self, sID, qID, qtype, title, order):
         self.sID = sID
         self.qID = qID
         self.qtype = qtype
         self.title = title
-        self.cho_num = 0
         self.order = order
 
     @staticmethod
     def new(sID, qID, order):
-        question = Question.query.get(qID)
+        question = db_load(Question, qID)
         qtype = question.qtype
         title = question.title
         result = Survey_Question(sID, qID, qtype, title, order)
         choice = Choice.query.filter_by(qID=qID).all()
         db.session.add(result)
         db.session.commit()
-        for i in choice:
-            Result.new(result.sqID, i.chID)
+        if choice is None:
+            Result.new(result.sqID, None)
+        else:
+            for i in choice:
+                Result.new(result.sqID, i.chID)
         return result.sqID
 
     @staticmethod
@@ -517,31 +535,34 @@ class Survey_Question(db.Model):
         return dic
 
     @staticmethod
-    def delete(sqID=None):
+    def delete(sqID):
         data = db_load(Survey_Question, sqID)
         db.session.delete(data)
         db.session.commit()
 
     @staticmethod
     def update(sqID, order):
-        target = Survey_Question.query.get(sqID)
-        target.order = order
+        data = db_load(Survey_Question, sqID)
+        data.order = order
         db.session.commit()
 
 
-#Result not only contains the answer to questions used in the survey but it also
-#contains the content of the choices. In the case of text based question.
-#chID increment with each answer, but the cho_con is nothing, and the answer is
-#the respective string.
-#Derived entity
+# Result not only contains the answer to questions
+# used in the survey but it also contains the content of the choices.
+# In the case of text based question.
+# chID increment with each answer,
+# but the cho_con is nothing, and the answer is
+# the respective string.
+# Derived entity
 class Result(db.Model):
 
     __tablename__ = "Result"
     chID = db.Column("chID", db.Integer, primary_key=True, autoincrement=True)
-    sqID = db.Column("sqID", db.Integer, db.ForeignKey('Survey_Question.sqID', ondelete='CASCADE'))
+    sqID = db.Column("sqID", db.Integer,
+                     db.ForeignKey('Survey_Question.sqID', ondelete='CASCADE'))
     cho_con = db.Column("cho_con", db.Text)
-    order = db.Column("order", db.Integer)
-    answer = db.Column("answer", db.Text, default='')
+    order = db.Column("order", db.Integer, nullable=False)
+    answer = db.Column("answer", db.Text, default='', nullable=False)
 
     def __init__(self, sqID, cho_con, order):
         self.sqID = sqID
@@ -550,13 +571,17 @@ class Result(db.Model):
 
     @staticmethod
     def new(sqID, chID):
-        choice = Choice.query.get(chID)
-        cho_con = choice.cho_con
-        order = choice.order
-        result = Result(sqID, cho_con, order)
-        db.session.add(result)
-        question = Survey_Question.query.get(sqID)
-        question.cho_num += 1
+        if chID is None:
+            result = Result(sqID, None, 0)
+            db.session.add(result)
+        else:
+            choice = db_load(Choice, chID)
+            cho_con = choice.cho_con
+            order = choice.order
+            result = Result(sqID, cho_con, order)
+            db.session.add(result)
+            question = db_load(Survey_Question, sqID)
+            question.cho_num += 1
         db.session.commit()
 
     @staticmethod
@@ -573,26 +598,29 @@ class Result(db.Model):
     @staticmethod
     def delete(chID):
         data = db_load(Result, chID)
-        Survey_Question.query.get(data.sqID).cho_num -= 1
+        db_load(Survey_Question, data.sqID).cho_num -= 1
         db.session.delete(data)
         db.session.commit()
 
     # This method is for updating content/order
     @staticmethod
     def update_content(chID, cho_con, order):
-        target = Result.query.get(chID)
-        target.cho_con = cho_con
-        target.order = order
+        data = db_load(Result, chID)
+        data.cho_con = cho_con
+        data.order = order
         db.session.commit()
 
     # This method is for updating the answer
     @staticmethod
     def update_answer(chID, answer):
-        target = Result.query.get(chID)
-        if target.order != 0:
-            target.answer = target.answer + ' + '
-            target.answer = eval(target.answer + answer)
+        data = db_load(Result, chID)
+        if data.order != 0:
+            data.answer = data.answer + ' + '
+            data.answer = eval(data.answer + answer)
         else:
-            target.answer = target.answer + 'औ'
-            target.answer = target.answer + answer
+        	if len(data.answer) == 0:
+        		data.answer = data.answer + answer
+    		else:
+	            data.answer = data.answer + 'औ'
+	            data.answer = data.answer + answer
         db.session.commit()
