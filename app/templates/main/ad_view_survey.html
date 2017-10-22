@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<head>
+   <title>View Survey</title>
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
+   <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
+   <!-- <script src="https://unpkg.com/vue"></script> -->
+   <script src="https://unpkg.com/vue/dist/vue.js"></script>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+   <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+   <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+
+</head>
+
+
+
+<body>
+
+  <div id="app">
+    <v-app id="inspire">
+      <v-app id="tool_bar" toolbar footer>
+
+    <!--           navigation drawer definition              -->
+    <v-navigation-drawer
+      temporary
+      v-model="drawer"
+      dark
+      overflow
+    >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-avatar>
+            <img v-bind:src="url" />
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+            <!-- back to login page -->
+            [[user_ID]]
+            <small v-if= "role === '/admin'">Admin</small>
+
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+      <v-list class="pt-0" dense>
+        <v-divider></v-divider>
+        <!-- this is to link side icons -->
+        <v-list-tile v-for="item in items" :key="item.title" :href="item.href">
+          <v-list-tile-action>
+            <v-icon>[[item.icon]]</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>[[item.title]]</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+
+      <v-btn ripple
+             fixed
+             bottom
+             block
+             color='red'
+             dark
+             @click = funcLogout() >Logout</v-btn>
+
+    </v-navigation-drawer>
+
+
+    <!--           Tool bar code and definition              -->
+      <v-toolbar class="cyan darken-3" dark fixed app>
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>View Survey</v-toolbar-title>
+      </v-toolbar>
+
+    <!--           Dash board content                -->
+    <main>
+      <v-content>
+      <v-container>
+        <v-layout column>
+        <v-layout row>
+          <v-flex xs12>
+            <v-list>
+                <v-subheader>Survey Information</v-subheader>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Survey ID</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.sID]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Course ID</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.cID]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Status</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.status]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Create Date</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.create_date]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Start Date</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.start_date]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Close Date</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.close_date]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Last Updated</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.update_date]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-list-tile @click="">
+                  <v-list-tile-title>Survey Name</v-list-tile-title>
+                  <v-list-tile-sub-title>[[surveyStruct.name]]</v-list-tile-sub-title>
+                </v-list-tile>
+                <v-divider></v-divider>
+                <v-subheader>Questions</v-subheader>
+                <template v-for="i in questions">
+                  <v-list-tile @click="">
+                    <v-list-tile-sub-title>[[i.title]]</v-list-sub-title>
+                  </v-list-tile>
+                </template>
+                <v-divider></v-divider>
+            </v-list>
+          </v-flex>
+        </v-layout>
+        <br />
+
+      <v-dialog v-model="dialog" lazy>
+          <v-btn class = "red darken-2" dark slot="activator" >Delete</v-btn>
+          <v-card>
+            <v-card-title>
+              <div class="headline">Are you sure you want to delete this survey?</div>
+            </v-card-title>
+            <v-card-text>Continuing will delete this survey PERMANENTLY.</v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
+              <v-btn class="green--text darken-1" flat="flat" @click.native="deleteSurvey()">Delete</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-select
+            v-bind:items = form
+            v-model="form_choice"
+            label="Status Update"
+            item-text="title"
+            single-line
+        ></v-select>
+
+        <v-flex xs8>
+        <v-btn class = "green" dark slot="activator" :href="'/admin/surveys/edit/'+surveyStruct.sID" >Edit survey</v-btn>
+        <!-- modify this to make it work -->
+        <v-btn class = "green" dark slot="activator" @click="update()" >Update status</v-btn>
+    	</v-flex>
+
+      </v-container>
+      </v-layout>
+
+      </v-content>
+		</main>
+      <v-footer app class = "cyan darken-3" >
+        <span class="white--text">T09B-Something</span>
+      </v-footer>
+		</v-app>
+	 </v-app>
+  </div>
+
+  <script>
+
+    var app = new Vue({
+
+      el: '#app',
+
+      delimiters: ["[[", "]]"],
+
+      data: {
+
+          user_ID: sessionStorage.user,
+
+          role: sessionStorage.role,
+
+          //TODO: the questions deleted will be noted in the backend ? or all needs to be handled by the front end
+          msg:'Please select a question below.',
+
+          //TODO: type defines the type and state of a question, which 1 == normal state,2== genertic, 3== deleted optional question
+          surveyStruct: [],
+
+          dialog: false,
+
+          drawer:false ,
+
+          //variables used for the new added select field is here!!!!!!!!
+          form_choice: null,
+
+          form: [
+             { id: 0, title: 'Offline' },
+             { id: 1, title: 'Online' },
+             { id: 2, title: 'Closed' },
+          ],
+          //icons to be displaced in drawer
+          items: [
+
+              { title: 'Dashboard', icon: 'dashboard',href:'/admin' },
+              { title: 'Surveys', icon: 'book',href:'/admin/surveys' },
+              { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
+              { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
+
+             ],
+          logout_href: "#",
+          questions: [],
+          right: null,
+
+          url:'staff_profile.jpg',
+          page: ''
+      },
+
+      mounted() {
+        var last = document.URL.substring(document.URL.lastIndexOf("/") + 1, document.URL.length);
+        this.page = last,
+        axios.get(
+    			'/api/survey/'+last,
+    			{headers: {
+    				'Authorization': 'Bearer ' + sessionStorage.token,
+    			}}
+    		)
+    		.then((response) => {
+    			this.surveyStruct = response.data
+          console.log(response.data)
+    			// Vue.set(vm.questionPool, response.data.questions)
+          for (var i = 0; i < this.surveyStruct.sqID.length; i++) {
+             axios.get(
+               '/api/survey_question/'+this.surveyStruct.sqID[i],
+               {headers: {
+         				'Authorization': 'Bearer ' + sessionStorage.token,
+         			}}
+             )
+             .then((response) => {
+                   this.questions.push(response.data);
+             })
+          }
+    		})
+    	},
+      methods: {
+         funcLogout: function (event) {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            axios.get(
+               '/logout',
+            )
+            .then((response) => {
+               window.location.href = response.data;
+            })
+         },
+         deleteSurvey: function (event) {
+            axios.get(
+        			'/admin/surveys/delete/'+ app.surveyStruct.sID,
+        			{headers: {
+        				'Authorization': 'Bearer ' + sessionStorage.token,
+        			}}
+        		)
+            .then((response) => {
+              window.location.href = response.data
+        		})
+         },
+         update: function (event) {
+           axios.get(
+             '/api/survey_operation/' + app.surveyStruct.sID,
+             {headers: {
+                'Authorization': 'Bearer ' + sessionStorage.token,
+             }})
+           .then((response) => {
+             console.log(app.form_choice.id);
+           })
+         }
+
+      }
+
+    })
+
+
+  </script>
+  </body>
