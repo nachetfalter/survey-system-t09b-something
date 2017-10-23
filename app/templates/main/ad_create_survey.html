@@ -2,6 +2,20 @@
 <head>
    <title>Create Survey</title>
 
+  <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+
+  </style>
+
    <!-- <link rel="stylesheet" href="style.css"> -->
 
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -66,6 +80,9 @@
 
     <!--           Tool bar code and definition              -->
       <v-toolbar app class="cyan darken-3" dark fixed app>
+        <v-btn icon class="hidden-xs-only" :href= "'/admin/surveys'">
+            <v-icon>arrow_back</v-icon>
+          </v-btn>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>Create Survey</v-toolbar-title>
       </v-toolbar>
@@ -74,29 +91,40 @@
     <main>
 
       <v-content>
-        <v-container fill_height>
+        <br />
+        <v-container xs3 elevation-3>
        	<!-- message -->
        	<v-layout column>
 
+        <br />
        	<h5>[[msg]]</h5>
-        </br>
-        <hr>
+
+        <hr class="style14">
         </br>
 
         [[msg2]]
         <br>
 
+        <v-flex xs10 offset-sm1>
         <v-text-field
 
-            label= "Survey Name"
+            label= "Survey name"
             v-model="buffer.survey_name"
 
           ></v-text-field>
+
+        </v-flex>
+
+        <hr class="style14">
+
+        <br />
 
         [[msg3]]
         <br />
 
           <!-- will fix later -->
+
+          <v-flex xs10 offset-sm1>
           <v-select
               :items="get_courses"
               v-model="buffer.course_ID"
@@ -105,10 +133,15 @@
               single-line
               hide-details
             ></v-select>
+          </v-flex>
+          <br />
 
+        <hr class="style14">
+        <br />
         [[msg6]]
         <br>
 
+        <v-flex xs10 offset-sm1>
         <v-menu
           lazy
           :close-on-content-click="false"
@@ -158,10 +191,14 @@
           ></v-text-field>
           <v-time-picker v-model="buffer.s_time" autosave></v-time-picker>
         </v-menu>
+      </v-flex>
+
+      <hr class="style14">
 
         <br />
         [[msg7]]
 
+        <v-flex xs10 offset-sm1>
         <v-menu
           lazy
           :close-on-content-click="false"
@@ -175,7 +212,7 @@
         >
           <v-text-field
             slot="activator"
-            label="Start date"
+            label="End date"
             v-model="buffer.e_date"
             prepend-icon="event"
             readonly
@@ -205,19 +242,25 @@
         >
           <v-text-field
             slot="activator"
-            label="Start time"
+            label="End time"
             v-model="buffer.e_time"
             prepend-icon="access_time"
             readonly
           ></v-text-field>
           <v-time-picker v-model="buffer.e_time" autosave></v-time-picker>
         </v-menu>
+      </v-flex>
 
+     <hr class="style14">
 
         <br>
+
         [[msg4]]
         <br>
 
+        <v-flex xs10 offset-sm1>
+
+        <v-list>
         <v-list-tile avatar v-for="question in buffer.added_question" v-bind:key="question">
             <v-list-tile-content>
               <v-list-tile-title>[[question.title]]</v-list-tile-title>
@@ -226,7 +269,11 @@
             <v-list-tile-action>
             </v-list-tile-action>
           </v-list-tile>
+        </v-list>
           <br>
+        </v-flex>
+
+            <v-flex xs10 offset-sm1>
 
             <v-dialog v-model="dialog" persistent width="50%">
 
@@ -272,18 +319,29 @@
                icon="new_releases"
                v-model="alert_pop"
                transition="scale-transition">
-               You have already added this question
+               Please check your added question
             </v-alert>
 
             </v-card>
 
           </v-dialog>
+        </v-flex>
+        <br />
+        <hr class="style14">
           <v-flex xs6>
+          <br />
           <v-btn color="blue" @click.native= check()>Submit Survey</v-btn>
           </v-flex>
-          <br />
 
-          <v-alert info dismissible
+        </v-layout>
+        </v-container>
+        <br />
+      </v-content>
+
+    </main>
+
+
+    <v-alert info dismissible
           error
           icon="new_releases"
           v-model="alert_final"
@@ -291,15 +349,8 @@
           Please check if all options are inputted correctly, note that today cannot be picked
         </v-alert>
 
-        </v-layout>
-        </v-container>
-      </v-content>
-
-    </main>
-
-
-
       <v-footer app class = "cyan darken-3" >
+        <v-spacer></v-spacer>
       <span class="white--text">T09B-Something</span>
       </v-footer>
 
@@ -375,10 +426,10 @@
         ques_ID: [],
         right: null,
 
-        url:'staff_profile.jpg',
+        url:'static/staff_profile.jpg',
 
         //TODO: discussion
-        msg:'You can add a new survey here: '
+        msg:'Survey Creation'
 
 
     },
@@ -391,7 +442,12 @@
     			}}
     		)
     		.then((response) => {
-    			this.q_pool = response.data.questions;
+            for (var i = 0; i < response.data.questions.length; i++) {
+               if (response.data.questions[i].qtype == "Gne") {
+                  this.q_pool.push(response.data.questions[i]);
+               }
+            }
+    			// this.q_pool = response.data.questions;
     			// Vue.set(vm.questionPool, response.data.questions)
     		})
         axios.get(

@@ -1,6 +1,22 @@
+<!-- Status select style issues -->
+
 <!DOCTYPE html>
 <head>
    <title>View Survey</title>
+
+    <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+
+    </style>
 
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -32,7 +48,7 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img v-bind:src="url" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}" />
           </v-list-tile-avatar>
           <v-list-tile-content>
             <!-- back to login page -->
@@ -68,6 +84,9 @@
 
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
+        <v-btn icon class="hidden-xs-only" :href= "'/admin/surveys'">
+            <v-icon>arrow_back</v-icon>
+          </v-btn>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>View Survey</v-toolbar-title>
       </v-toolbar>
@@ -75,53 +94,64 @@
     <!--           Dash board content                -->
     <main>
       <v-content>
-      <v-container>
+        <br />
+      <v-container xs2 elevation-3>
         <v-layout column>
         <v-layout row>
           <v-flex xs12>
+
+            <br />
+            <h5>Survey Information</h5>
+
+            <hr class="style14">
+            <br />
+
             <v-list>
-                <v-subheader>Survey Information</v-subheader>
-                <v-list-tile @click="">
+
+                <v-divider></v-divider>
+                <v-list-tile >
                   <v-list-tile-title>Survey ID</v-list-tile-title>
                   <v-list-tile-sub-title>[[surveyStruct.sID]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile >
                   <v-list-tile-title>Course ID</v-list-tile-title>
-                  <v-list-tile-sub-title>[[surveyStruct.cID]]</v-list-tile-sub-title>
+                  <v-list-tile-sub-title>[[courseID]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile >
                   <v-list-tile-title>Status</v-list-tile-title>
-                  <v-list-tile-sub-title>[[surveyStruct.status]]</v-list-tile-sub-title>
+                  <v-list-tile-sub-title v-if = "surveyStruct.status === 0">Offline</v-list-tile-sub-title>
+				  <v-list-tile-sub-title v-else-if = "surveyStruct.status === 1">Online</v-list-tile-sub-title>
+				  <v-list-tile-sub-title v-else>Closed</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile >
                   <v-list-tile-title>Create Date</v-list-tile-title>
                   <v-list-tile-sub-title>[[surveyStruct.create_date]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile>
                   <v-list-tile-title>Start Date</v-list-tile-title>
                   <v-list-tile-sub-title>[[surveyStruct.start_date]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile>
                   <v-list-tile-title>Close Date</v-list-tile-title>
                   <v-list-tile-sub-title>[[surveyStruct.close_date]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile>
                   <v-list-tile-title>Last Updated</v-list-tile-title>
                   <v-list-tile-sub-title>[[surveyStruct.update_date]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-list-tile @click="">
+                <v-list-tile>
                   <v-list-tile-title>Survey Name</v-list-tile-title>
                   <v-list-tile-sub-title>[[surveyStruct.name]]</v-list-tile-sub-title>
                 </v-list-tile>
                 <v-divider></v-divider>
-                <v-subheader>Questions</v-subheader>
+                <v-subheader>Question title</v-subheader>
                 <template v-for="i in questions">
                   <v-list-tile @click="">
                     <v-list-tile-sub-title>[[i.title]]</v-list-sub-title>
@@ -131,43 +161,58 @@
             </v-list>
           </v-flex>
         </v-layout>
-        <br />
 
-      <v-dialog v-model="dialog" lazy>
-          <v-btn class = "red darken-2" dark slot="activator" >Delete</v-btn>
+        <v-flex xs6>
+
+      </v-flex>
+
+        <v-flex xs8>
+         <v-dialog v-model="dialog" lazy v-if = "surveyStruct.status === 1">
+          <v-btn class = "blue" dark slot="activator">Close Survey</v-btn>
+          <v-card>
+            <v-card-title>
+              <div class="headline">Are you sure you want to close this survey?</div>
+            </v-card-title>
+            <v-card-text>Continuing will close this survey will terminate availiability for student responses.</v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
+              <v-btn class="green--text darken-1" flat="flat" @click.native="update()">Close Survey</v-btn>
+            </v-card-actions>
+          </v-card>
+         </v-dialog>
+        <v-btn light disabled v-else>Close Survey</v-btn>
+        <br />
+        <br />
+        <v-btn v-if="surveyStruct.status === 0" class = "blue" dark slot="activator" :href="'/admin/surveys/edit/'+surveyStruct.sID" >Edit survey</v-btn>
+        <v-btn light disabled v-else>Edit Survey</v-btn>
+          <v-btn light disabled v-if = "surveyStruct.status === 1">Delete</v-btn>
+        <v-dialog v-model="dialog2" lazy v-else>
+          <v-btn class = "red darken-2" dark slot="activator">Delete</v-btn>
           <v-card>
             <v-card-title>
               <div class="headline">Are you sure you want to delete this survey?</div>
             </v-card-title>
-            <v-card-text>Continuing will delete this survey PERMANENTLY.</v-card-text>
+            <v-card-text>Continuing will delete this survey and all associated questions and answers PERMANENTLY.</v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
+              <v-btn class="green--text darken-1" flat="flat" @click.native="dialog2 = false">Cancel</v-btn>
               <v-btn class="green--text darken-1" flat="flat" @click.native="deleteSurvey()">Delete</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
 
-        <v-select
-            v-bind:items = form
-            v-model="form_choice"
-            label="Status Update"
-            item-text="title"
-            single-line
-        ></v-select>
-
-        <v-flex xs8>
-        <v-btn class = "green" dark slot="activator" :href="'/admin/surveys/edit/'+surveyStruct.sID" >Edit survey</v-btn>
         <!-- modify this to make it work -->
-        <v-btn class = "green" dark slot="activator" @click="update()" >Update status</v-btn>
     	</v-flex>
 
       </v-container>
       </v-layout>
 
+      <br />
       </v-content>
 		</main>
       <v-footer app class = "cyan darken-3" >
+        <v-spacer></v-spacer>
         <span class="white--text">T09B-Something</span>
       </v-footer>
 		</v-app>
@@ -195,17 +240,12 @@
           surveyStruct: [],
 
           dialog: false,
-
+          dialog2: false,
           drawer:false ,
 
           //variables used for the new added select field is here!!!!!!!!
-          form_choice: null,
+          form_choice: 2,
 
-          form: [
-             { id: 0, title: 'Offline' },
-             { id: 1, title: 'Online' },
-             { id: 2, title: 'Closed' },
-          ],
           //icons to be displaced in drawer
           items: [
 
@@ -215,11 +255,12 @@
               { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
 
              ],
-          logout_href: "#",
           questions: [],
           right: null,
+          course_get: [],
+          courseID: '',
 
-          url:'staff_profile.jpg',
+          url:'static/staff_profile.jpg',
           page: ''
       },
 
@@ -248,6 +289,22 @@
              })
           }
     		})
+         axios.get(
+            '/api/course',
+            {headers: {
+               'Authorization': 'Bearer ' + sessionStorage.token,
+            }}
+         )
+         .then ((response) => {
+           console.log(response.data.courses);
+            this.course_get = response.data.courses;
+            for (var i = 0; i < this.course_get.length; i++) {
+              if (this.course_get[i].cID == this.surveyStruct.cID) {
+                this.courseID = this.course_get[i].course;
+              }
+            }
+
+         })
     	},
       methods: {
          funcLogout: function (event) {
@@ -278,7 +335,8 @@
                 'Authorization': 'Bearer ' + sessionStorage.token,
              }})
            .then((response) => {
-             console.log(app.form_choice.id);
+             console.log(app.form_choice);
+             window.location.reload();
            })
          }
 

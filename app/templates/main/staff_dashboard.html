@@ -6,7 +6,20 @@
 <head>
    <title>Staff Dashboard</title>
 
-   <!-- <link rel="stylesheet" href="style.css"> --> 
+    <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+    </style>
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
    <!-- <script src="https://unpkg.com/vue"></script> -->
    <script src="https://unpkg.com/vue/dist/vue.js"></script>
@@ -33,12 +46,12 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img v-bind:src="url" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}" />
           </v-list-tile-avatar>
           <v-list-tile-content>
 
-            [[user_ID]] 
-            <small v-if= "role === '/staff'">Staff</small>   
+            [[user_ID]]
+            <small v-if= "role === '/staff'">Staff</small>
 
           </v-list-tile-content>
         </v-list-tile>
@@ -56,13 +69,13 @@
         </v-list-tile>
       </v-list>
 
-      <v-btn ripple 
-             fixed 
+      <v-btn ripple
+             fixed
              bottom
              block
-             color='red' 
-             dark 
-             @click = funcLogout()>Logout</v-btn>      
+             color='red'
+             dark
+             @click = funcLogout()>Logout</v-btn>
 
     </v-navigation-drawer>
 
@@ -77,14 +90,15 @@
     <main>
 
       <v-content>
-        <v-container>
+        <br />
+        <v-container elevation-2>
        	<!-- message -->
+
        	<v-layout column>
 
        	<h5>[[msg]]</h5>
-        </br>
-        <hr>
-        
+        <hr class="style14">
+
         <br/>
 
           <v-layout row>
@@ -99,7 +113,7 @@
                           </v-list-tile-content>
                         </v-list-tile-action>
                       </v-list-tile>
-                      <v-divider></v-divider>
+
                     </template>
                   </v-list>
                 </v-flex>
@@ -110,7 +124,8 @@
     </main>
 
       <v-footer app class = "cyan darken-3" >
-      <span class="white--text">Build by Something</span>
+        <v-spacer></v-spacer>
+      <span class="white--text">T09B-Something</span>
       </v-footer>
 
     </v-app>
@@ -140,7 +155,8 @@
         items: [
 
           { title: 'Home', icon: 'dashboard',href: '/staff'},
-          { title: ' All Surveys', icon: 'book',href:'/staff/surveys'},
+          { title: 'All Surveys', icon: 'book',href:'/staff/surveys'},
+          { title: 'Metric', icon: 'book', href: '/staff/metric'}
 
         ],
         logout_href: "#",
@@ -150,10 +166,11 @@
         url:'staff_profile.jpg',
 
         //TODO: discussion
-        msg:'Welcome, please choose the options listed below',
+        msg:'Welcome to the staff dashboard! Please choose the options listed below',
 
         options: [
-        { id: 'View all surveys', name: 'View all avaliable survey created.',href: '/staff/surveys'},
+        { id: 'View surveys', name: 'View all avaliable surveys',href: '/staff/surveys'},
+        { id: 'Metric', name: 'View results of closed surveys', href: '/staff/metric'},
         ],
 
 

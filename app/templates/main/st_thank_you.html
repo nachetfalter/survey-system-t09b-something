@@ -71,19 +71,23 @@
     <!--           Tool bar code and definition              -->
       <v-toolbar app class="cyan darken-3" dark fixed app>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-        <v-toolbar-title>Student Dashboard</v-toolbar-title>
+        <v-toolbar-title>Survey Completed!</v-toolbar-title>
       </v-toolbar>
 
     <!--           Dash board content                -->
     <main>
 
       <v-content>
+
+      <br />
         <v-container>
        	<!-- message -->
        	<v-layout column>
+
           <h5> Thank you for completing the survey! </h5>
           <v-layout row>
                    <v-flex xs12>
+                        <v-list>
                          <v-list-tile href="/student">
                            <v-list-tile-action>
                              <v-list-tile-content>
@@ -92,6 +96,7 @@
                              </v-list-tile-content>
                            </v-list-tile-action>
                          </v-list-tile>
+                       </v-list>
                          <!-- <v-divider></v-divider> -->
                    </v-flex>
                  </v-layout>
@@ -102,7 +107,8 @@
     </main>
 
       <v-footer app class = "cyan darken-3" >
-      <span class="white--text">Build by Something</span>
+        <v-spacer></v-spacer>
+      <span class="white--text">T09B-Something</span>
       </v-footer>
 
     </v-app>
@@ -132,14 +138,15 @@
         items: [
 
           { title: 'Home', icon: 'dashboard',href: '/student'},
-          { title: ' All Surveys', icon: 'book',href:'/student/surveys'},
+          { title: 'All Surveys', icon: 'book',href:'/student/surveys'},
+          { title: 'Metrics', icon: 'book',href:'/student/metric'},
 
         ],
         logout_href: "#",
 
         right: null,
 
-        url:'staff_profile.jpg',
+        url:'static/staff_profile.jpg',
 
         //TODO: discussion
         msg:'Welcome, please choose the options listed below',

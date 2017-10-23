@@ -2,6 +2,21 @@
 <head>
    <title>Survey List</title>
 
+    <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+
+    </style>
+
+
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
    <!-- <script src="https://unpkg.com/vue"></script> -->
@@ -34,11 +49,13 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img v-bind:src="url" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}" />
           </v-list-tile-avatar>
           <v-list-tile-content>
-            <!-- back to login page -->
-            <v-btn error dark @click="funcLogout()" >Logout</v-btn>
+
+            [[user_ID]]
+            <small v-if= "role === '/staff'">Staff</small>
+
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
@@ -54,6 +71,14 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
+
+  <v-btn ripple
+             fixed
+             bottom
+             block
+             color='red'
+             dark
+             @click = funcLogout()>Logout</v-btn>
     </v-navigation-drawer>
 
 
@@ -66,22 +91,34 @@
     <!--           Dash board content                -->
       <main>
         <v-content>
-        <v-container fluid>
+          <br />
+        <v-container xs2 elevation-3>
           <v-layout column>
         <!-- questions pool -->
+            <br />
+
             <h5>Please select a survey below to edit it.</h5>
-            <hr class="style13">
+            <hr class="style14">
+            <br />
 
               <v-layout row>
                 <v-flex xs12>
                   <v-list two-line>
+
+                  <div v-if="surveys[0] ==null">
+
+                          <v-list-tile>
+                          <v-list-tile-content>
+                            <v-list-tile-title>Empty</v-list-tile-title>
+                          </v-list-tile-content>
+                      </v-list-tile>
+
+                    </div>
+
+                    <div v-else>
+
                     <template v-for="survey in surveys">
 
-      <!-- The deleted questions will be enhanced to something better maybe in iteration 3 -->
-      <!-- but the format will stay for now  -->
-      <!-- this page will communiate with the backend same as detailed page  -->
-
-      <!-- !!!!!At lease a type data must be passed to the edit page!!!!!!!!!!!   -->
                       <v-list-tile :href="'/staff/surveys/view/'+[[survey.sID]]">
                           <v-list-tile-content>
                             <v-list-tile-title v-html="survey.sID"></v-list-tile-title>
@@ -91,20 +128,20 @@
                       </v-list-tile>
                       <v-divider></v-divider>
                     </template>
+                   </div>
+
                   </v-list>
                 </v-flex>
                 </v-layout>
               </v-layout>
 
               </v-container>
+              <br />
               </v-content>
-
-        <!-- <v-footer class = "cyan darken-3" >
-        <span class="white--text">Build by Something</span>
-        </v-footer> -->
 
       </main>
       <v-footer app class = "cyan darken-3">
+        <v-spacer></v-spacer>
         <span class="white--text">T09B-Something</span>
         </v-footer>
     </v-app>
@@ -121,6 +158,10 @@
 
     data: {
 
+        user_ID: sessionStorage.user,
+
+        role: sessionStorage.role,
+
         //TODO: the questions deleted will be noted in the backend ? or all needs to be handled by the front end
         msg:'Please select a question below.',
 
@@ -134,13 +175,14 @@
 
             { title: 'Dashboard', icon: 'dashboard',href:'/staff' },
             { title: 'Surveys', icon: 'book',href:'/staff/surveys' },
+            { title: 'Metric', icon: 'book',href:'/staff/metric' },
 
            ],
         logout_href: "#",
 
         right: null,
 
-        url:'staff_profile.jpg'
+        url:'static/staff_profile.jpg'
 
     },
 
@@ -165,7 +207,10 @@
       			}}
           )
           .then((response) => {
+            console.log(response.data);
+             if (response.data.status === 0) {
               app.surveys.push(response.data);
+            }
           })
         }
   		})

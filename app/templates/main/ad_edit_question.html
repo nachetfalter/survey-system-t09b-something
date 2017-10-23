@@ -1,6 +1,22 @@
+
 <!DOCTYPE html>
 <head>
    <title>Edit Question</title>
+
+    <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+
+  </style>
+
 
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -29,17 +45,18 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img v-bind:src="url" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}"/>
           </v-list-tile-avatar>
           <v-list-tile-content>
 
-            [[user_ID]] 
+            [[user_ID]]
             <small v-if= "role === '/admin'">Admin</small>
 
             <!-- back to login page -->
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
+
       <v-list class="pt-0" dense>
         <v-divider></v-divider>
         <!-- this is to link side icons -->
@@ -53,12 +70,12 @@
         </v-list-tile>
       </v-list>
 
-      <v-btn ripple 
-             fixed 
+      <v-btn ripple
+             fixed
              bottom
              block
-             color='red' 
-             dark 
+             color='red'
+             dark
              @click = funcLogout()>Logout</v-btn>
 
     </v-navigation-drawer>
@@ -66,6 +83,11 @@
 
     <!--           Tool bar code and definition              -->
       <v-toolbar app class="cyan darken-3" dark fixed app>
+
+        <v-btn icon class="hidden-xs-only" :href= "'/admin/questions/view/'+this.page">
+            <v-icon>arrow_back</v-icon>
+          </v-btn>
+
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>Edit Question</v-toolbar-title>
       </v-toolbar>
@@ -74,46 +96,64 @@
     <main>
 
       <v-content>
-        <v-container xs8>
+        <br />
+        <v-container xs2 elevation-3>
        	<!-- message -->
        	<v-layout column>
 
+        <br />
        	<h5>[[msg]]</h5>
-        </br>
 
-        <hr>
+        <hr class="style14">
 
+        <br />
+          [[msg2]]
+          <v-flex xs10 offset-sm1>
           <v-text-field
             name="input-7-1"
             label="Question Title"
-            multi-line
             v-model = "q_struct.title"
           ></v-text-field>
+        </v-flex>
 
-        <hr>
+        <br />
+
+        <hr class="style14">
+        <br />
         [[msg3]]
+        <br>
+
+        <v-flex xs3 offset-sm1>
+        <v-select
+
+              v-bind:items="q_type"
+              item-text="title"
+              item-value="val"
+              v-model="q_properties.q_type"
+              single-line
+
+        ></v-select>
+
+      </v-flex>
+
         </br>
 
-        <v-layout row text-allign>
-          <v-btn color = 'blue' @click = "q_properties.q_type = 1">Multiple choice question</v-btn>
-          <v-btn color = 'red' @click = "q_properties.q_type = 2">Text form question</v-btn>
-        </v-layout>
-        </br>
-
-        <hr>
 
 
         <div v-if="q_properties.q_type == 1">
-        <v-layout column>
-          <v-list-tile avatar v-for="option in q_properties.added_option" v-bind:key="option.title">
-            <v-list-tile-content>
-              <v-list-tile-title>[[option.title]]</v-list-tile-title>
-            </v-list-tile-content>
-            <v-btn color="red" flat @click.native= rem(option.ID)>Delete</v-btn>
-            <v-list-tile-action>
-            </v-list-tile-action>
-          </v-list-tile>
 
+        <v-layout column>
+          <v-list>
+          <v-list-tile avatar v-for="option in q_properties.added_option" v-bind:key="option.title">
+
+              <v-list-tile-title>[[option.title]]</v-list-tile-title>
+
+            <v-btn color="red" flat @click.native= rem(option.ID)>Delete</v-btn>
+
+          </v-list-tile>
+        </v-list>
+
+            <v-flex xs3 offset-sm1>
             <v-dialog v-model="dialog" persistent width="50%">
             <v-btn color="primary" dark slot="activator">Add option</v-btn>
 
@@ -125,6 +165,7 @@
               <v-card-text>
                 <v-container grid-list-md>
                   <v-layout wrap>
+
                       <v-text-field label="Please add option" multi-line v-model = q_properties.curr_option></v-text-field>
                   </v-layout>
                 </v-container>
@@ -148,13 +189,18 @@
           </v-dialog>
 
         </v-layout>
+      </v-flex>
+        <br />
+        <hr class="style14">
 
+        <br />
         <v-btn color="blue" @click.native= check()>Submit Question</v-btn>
 
         </div>
         <div v-else>
 
-
+          <hr class="style14">
+          <br />
           <v-btn color="blue" @click.native= check()>Submit Question</v-btn>
 
         </div>
@@ -163,12 +209,12 @@
         </v-layout>
         </v-container>
 
-      </v-content>        
+      </v-content>
 
 
 
     </main>
-
+      <v-card>
       <v-alert info dismissible
           error
           icon="new_releases"
@@ -176,8 +222,9 @@
           transition="scale-transition">
           Please check if all options are inputted correctly
       </v-alert>
-
+    </v-card>
       <v-footer app class = "cyan darken-3" >
+       <v-spacer></v-spacer>
       <span class="white--text">T09B-Something</span>
 
       </v-footer>
@@ -201,6 +248,12 @@
     delimiters: ["[[", "]]"],
 
     data: {
+
+        q_type:[
+
+        {title:"Multiple Choice",val: 1 },
+        {title:"Short Answer",val: 2}
+        ],
 
         user_ID: sessionStorage.user,
 
@@ -226,9 +279,9 @@
 
         },
 
-        msg2: 'Please enter the title of the question: ',
+        msg2: 'Question Title: ',
 
-        msg3: 'Please edit the type of question: ',
+        msg3: 'Question type: ',
 
         msg4: 'Please select the identity of this question: ',
 
@@ -245,25 +298,18 @@
           { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
 
         ],
-        logout_href: "#",
-
+        page: '',
         right: null,
 
-        url:'staff_profile.jpg',
+        url:'static/staff_profile.jpg',
 
         //TODO: discussion
-        msg:'You can edit already created questions here: ',
-
-
-        //options must be mpdified for the admin template;
-        options: [
-        { id: 'View all Survey', name: 'View all avaliable survey created.',href: '#'},
-        { id: 'Edit questions', name: 'Add or delete optional questions.', href: '#'}
-        ],
+        msg:'Edit created question '
 
     },
     mounted() {
       var last = document.URL.substring(document.URL.lastIndexOf("/") + 1, document.URL.length);
+      this.page = last;
       axios.get(
         '/api/question/'+last,
         {headers: {
@@ -359,7 +405,14 @@
       },
       check(){
 
-        if((app.q_properties.added_option == null || app.q_properties.added_option == '') && app.q_properties.q_type == 1 ){
+        if(
+          (app.q_properties.q_type === "Multiple Choice" && app.q_properties.added_option[0] == null)
+
+          && (app.q_properties.curr_input_init == '' || app.q_properties.curr_input_init == null)
+
+          || app.q_properties.q_type === ''
+
+          ){
 
           app.alert_final = true;
 
@@ -395,7 +448,7 @@
         }
 
 
-      }, 
+      },
         funcLogout: function (event) {
          sessionStorage.removeItem('token');
          sessionStorage.removeItem('user');

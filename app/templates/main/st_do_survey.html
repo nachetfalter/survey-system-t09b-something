@@ -1,8 +1,23 @@
 
+<!-- no previous question button -->
+<!-- what to do if user exits answering question by clicking on dashboard -->
 
 <!DOCTYPE html>
 <head>
    <title>Answer question</title>
+
+  <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+    </style>
 
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -15,7 +30,6 @@
    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
 
 </head>
-
 
 
 <body>
@@ -36,12 +50,12 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img v-bind:src="url" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}" />
           </v-list-tile-avatar>
           <v-list-tile-content>
-            
-            [[user_ID]] 
-            <small v-if= "role === '/student'">Student</small> 
+
+            [[user_ID]]
+            <small v-if= "role === '/student'">Student</small>
 
           </v-list-tile-content>
         </v-list-tile>
@@ -59,18 +73,23 @@
         </v-list-tile>
       </v-list>
 
-      <v-btn ripple 
-             fixed 
+      <v-btn ripple
+             fixed
              bottom
              block
-             color='red' 
-             dark 
-             @click = funcLogout()>Logout</v-btn> 
+             color='red'
+             dark
+             @click = funcLogout()>Logout</v-btn>
     </v-navigation-drawer>
 
 
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
+
+      <v-btn icon class="hidden-xs-only" :href= "'/student/surveys'">
+            <v-icon>arrow_back</v-icon>
+          </v-btn>
+
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>Answer</v-toolbar-title>
       </v-toolbar>
@@ -79,36 +98,44 @@
     <main>
 
       <v-content>
-        <v-container>
+        <br />
+        <v-container xs2 elevation-3>
         <!-- message -->
         <v-layout column>
 
+        <br />
         <h5>[[msg]]</h5>
-        </br>
-        <hr>
+
+        <hr class="style14">
         <br />
 
         <!-- There is a change in the usage of elements from radio forms to list -->
-        <h5>Question: [[q_data.title]]</h5>
-        </br>
+        <h6>Question: [[q_data.title]]</h6>
+
 
         <v-layout column>
 
       <div v-if="mcq">
 
+        <v-flex xs10 offset-xs1>
         <div v-for = "(cho_con, index) in q_data.cho_con">
           <input v-model="selected_ID" name="selected_ID" type=radio v-bind:value="q_data.chID[index]" />
           <label>[[cho_con]]</label>
         </div>
-
+      </v-flex>
       </div>
       <div v-else>
+
+        <v-flex xs10 offset-xs1>
         <v-text-field
              name="input-7-1"
              label="Please enter your answer here"
              v-model = "selected_ID"
              multi-line
         ></v-text-field>
+      </v-flex>
+      <br />
+
       </div>
 
 
@@ -125,7 +152,7 @@
 
         </v-container>
 
-      </v-content>    
+      </v-content>
 
       </main>
 
@@ -135,10 +162,11 @@
                transition="scale-transition"
                fixed>
                Please check that the question displayed aboved has been filled out correcly
-      </v-alert>  
+      </v-alert>
 
       <v-footer app class = "cyan darken-3" >
-      <span class="white--text">Build by Something</span>
+        <v-spacer></v-spacer>
+      <span class="white--text">T09B-Something</span>
       </v-footer>
 
     </v-app>
@@ -178,7 +206,7 @@
 
         lastq: 0,
 
-        msg:'Please read the question and pick an answer from below: ',
+        msg:'Answer question ',
 
         drawer:false,
 
@@ -186,14 +214,15 @@
         items: [
 
           { title: 'Home', icon: 'dashboard',href: '/student'},
-          { title: ' All Surveys', icon: 'book',href:'/student/surveys'},
+          { title: 'All Surveys', icon: 'book',href:'/student/surveys'},
+          { title: 'Metrics', icon: 'book',href:'/student/metric'},
 
         ],
         logout_href: "#",
         test: [1,2,3],
         right: null,
 
-        url:'staff_profile.jpg',
+        url:'static/staff_profile.jpg',
 
         //TODO: discussion
 
@@ -270,7 +299,7 @@
             var c = [];
             c = JSON.parse(sessionStorage.getItem('answer'));
             if (this.selected_ID === parseInt(this.selected_ID, 10)) {
-              c.push(JSON.stringify(this.selected_ID));
+              c.push(JSON.stringify(1));
             } else {
               c.push(this.selected_ID);
             }
@@ -284,6 +313,7 @@
                  question_id: JSON.parse(sessionStorage.getItem('q_ID')),
                  choice_id: JSON.parse(sessionStorage.getItem('ch_ID')),
                  answer: JSON.parse(sessionStorage.getItem('answer')),
+                 username: sessionStorage.getItem('user'),
                 }
           		)
           		.then((response) => {
