@@ -93,8 +93,10 @@ def ad_question_edit(question_id):
 @authority_level_required('Admin')
 def ad_question_delete(question_id):
     ''' admin delete question '''
-    Question.delete(question_id)
-    return url_for('.ad_question_pool')
+    if Question.load(question_id) is None:
+        Question.delete(question_id)
+        return url_for('.ad_question_pool')
+    return jsonify({"Error": "Not Found"}), 404
 
 
 @main.route('/admin/questions/view/<int:question_id>')
@@ -166,7 +168,7 @@ def ad_survey_edit(survey_id):
             Scheduler.add_survey_schedule_job(survey_id)
             return url_for('.ad_survey_list')
         return render_template('main/ad_edit_survey.html')
-    return jsonify({"Error": "Immutable"}), 403
+    abort(403)
 
 
 @main.route('/admin/surveys/delete/<int:survey_id>')
@@ -175,9 +177,11 @@ def ad_survey_edit(survey_id):
 def ad_survey_delete(survey_id):
     ''' admin delete survey '''
     if Validator.survey_offline(survey_id):
-        Survey.delete(survey_id)
-        Scheduler.remove_survey_schedule_job(survey_id)
-        return url_for('.ad_survey_list')
+        if Survey.load(survey_id) is None:
+            Survey.delete(survey_id)
+            Scheduler.remove_survey_schedule_job(survey_id)
+            return url_for('.ad_survey_list')
+        return jsonify({"Error": "Not Found"}), 404
     return jsonify({"Error": "Immutable"}), 400
 
 
@@ -262,7 +266,7 @@ def sf_survey_edit(survey_id):
                         abort(400)
             return url_for('.sf_survey_list')
         return render_template('main/sf_edit_survey.html')
-    return jsonify({"Error": "Immutable"}), 403
+    abort(403)
 
 
 @main.route('/staff/surveys/view/<int:survey_id>')
