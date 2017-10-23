@@ -52,7 +52,9 @@ class User(db.Model, UserMixin):
     __tablename__ = "User"
     zID = db.Column("zID", db.Text, primary_key=True, autoincrement=False)
     _password = db.Column("password", db.Binary(60), nullable=False)
-    auth = db.Column("auth", db.String(7), CheckConstraint('auth == "Student" or auth == "Admin" or auth == "Staff"'))
+    auth = db.Column("auth", db.String(7),
+                     CheckConstraint('auth == "Student"\
+                                     or auth == "Admin" or auth == "Staff"'))
 
     def __init__(self, zID, password_text, auth):
         self.zID = zID
@@ -84,7 +86,8 @@ class User(db.Model, UserMixin):
     def load(zID=None):
         return db_load(User, zID)
 
-    # This method will return all elements in User as a dict with a new element 'cID'
+    # This method will return all elements in User as a dict with
+    # a new element 'cID'
     # Which contains all courses id this user is enrolled in. Admin has none.
     def extract(self):
         dic = dict(self.__dict__)
@@ -97,10 +100,18 @@ class User(db.Model, UserMixin):
             dummy = []
             survey = []
             for i in course:
-                dummy.append(getattr(Survey.query.filter_by(cID=i.cID).first(), 'sID', None))
+                dummy.append(getattr(Survey.query.
+                             filter_by(cID=i.cID).first(), 'sID', None))
             for i in dummy:
                 survey = []
-                if Answer_Record.check(self.zID, i) != 1:
+                if self.auth == 'Student':
+                    if Answer_Record.check(self.zID, i) != 1 and Survey.load(i).status == 1 or \
+                        Answer_Record.check(self.zID, i) == 1 and Survey.load(i).status == 2:
+                        survey.append(i)
+                elif self.auth == 'Staff':
+                    if Survey.load(i).status in [0, 2]:
+                        survey.append(i)
+                else:
                     survey.append(i)
             dic['sID'] = survey
             return dic
@@ -139,8 +150,12 @@ class User(db.Model, UserMixin):
 class Enrolment(db.Model):
 
     __tablename__ = "Enrolment"
-    zID = db.Column("zID", db.Text, db.ForeignKey('User.zID', ondelete='CASCADE'), primary_key=True)
-    cID = db.Column("cID", db.Integer, db.ForeignKey('Course.cID', ondelete='CASCADE'), primary_key=True)
+    zID = db.Column("zID", db.Text,
+                    db.ForeignKey('User.zID', ondelete='CASCADE'),
+                    primary_key=True)
+    cID = db.Column("cID", db.Integer,
+                    db.ForeignKey('Course.cID', ondelete='CASCADE'),
+                    primary_key=True)
 
     def __init__(self, zID, cID):
         self.zID = zID
@@ -197,13 +212,15 @@ class Course(db.Model):
         db.session.commit()
 
 
-#qtype is about whether this question is considered as a generic question or
-#a optional question. The title of the question has a limit of 80 characters
+# qtype is about whether this question is considered as a generic question or
+# a optional question. The title of the question has a limit of 80 characters
 class Question(db.Model):
 
     __tablename__ = "Question"
     qID = db.Column("qID", db.Integer, primary_key=True, autoincrement=True)
-    qtype = db.Column("qtype", db.String(3), CheckConstraint('qtype == "Opt" or qtype == "Gne"'), default='Gne')
+    qtype = db.Column("qtype", db.String(3),
+                      CheckConstraint('qtype == "Opt" \
+                                      or qtype == "Gne"'), default='Gne')
     title = db.Column("title", db.Text, nullable=False)
     cho_num = db.Column("cho_num", db.Integer, default=0, nullable=False)
 
@@ -275,14 +292,15 @@ class Question(db.Model):
         db.session.commit()
 
 
-#Choice is also a bridge entity used to break the mn relationship between
-#question and its choice contents. cho_con = choice content
-#Weak entity
+# Choice is also a bridge entity used to break the mn relationship between
+# question and its choice contents. cho_con = choice content
+# Weak entity
 class Choice(db.Model):
 
     __tablename__ = "Choice"
     chID = db.Column("chID", db.Integer, primary_key=True, autoincrement=True)
-    qID = db.Column("qID", db.Integer, db.ForeignKey('Question.qID', ondelete='CASCADE'))
+    qID = db.Column("qID", db.Integer,
+                    db.ForeignKey('Question.qID', ondelete='CASCADE'))
     cho_con = db.Column("cho_con", db.Text)
     order = db.Column("order", db.Integer, nullable=False)
 
@@ -332,16 +350,19 @@ class Choice(db.Model):
         db.session.commit()
 
 
-#Con is a boolean indicate whether the survey is online or not
+# Con is a boolean indicate whether the survey is online or not
 class Survey(db.Model):
 
     __tablename__ = "Survey"
     sID = db.Column("sID", db.Integer, primary_key=True, autoincrement=True)
-    cID = db.Column("cID", db.Integer, db.ForeignKey('Course.cID', ondelete='CASCADE'))
+    cID = db.Column("cID", db.Integer,
+                    db.ForeignKey('Course.cID', ondelete='CASCADE'))
     name = db.Column("name", db.Text, nullable=False)
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow())
+    create_date = db.Column("create_date", db.DateTime,
+                            default=datetime.now())
     start_date = db.Column("start_date", db.DateTime)
-    update_date = db.Column("update_date", db.DateTime, default=datetime.utcnow())
+    update_date = db.Column("update_date", db.DateTime,
+                            default=datetime.now())
     close_date = db.Column("close_date", db.DateTime)
     status = db.Column("status", db.Integer, default=0, nullable=False)
 
@@ -407,19 +428,21 @@ class Survey(db.Model):
         data.cID = cID
         data.start_date = start_date
         data.close_date = close_date
-        data.update_date = datetime.utcnow()
+        data.update_date = datetime.now()
         db.session.commit()
 
 
-#Answer record is used to prevent the same person from doing the survey again.
-#Record is a boolean which indicates whether this person has done the survey
-#You shouldn't touch the methods here as it is for internal use.
-#Weak entity
+# Answer record is used to prevent the same person from doing the survey again.
+# Record is a boolean which indicates whether this person has done the survey
+# You shouldn't touch the methods here as it is for internal use.
+# Weak entity
 class Answer_Record(db.Model):
 
     __tablename__ = "Answer_Record"
-    zID = db.Column("zID", db.Text, db.ForeignKey('User.zID', ondelete='CASCADE'), primary_key=True, autoincrement=False)
-    sID = db.Column("cID", db.Integer, db.ForeignKey('Survey.sID', ondelete='CASCADE'), primary_key=True, autoincrement=False)
+    zID = db.Column("zID", db.Text, db.ForeignKey('User.zID',
+                    ondelete='CASCADE'), primary_key=True, autoincrement=False)
+    sID = db.Column("cID", db.Integer, db.ForeignKey('Survey.sID',
+                    ondelete='CASCADE'), primary_key=True, autoincrement=False)
 
     def __init__(self, zID, sID):
         self.zID = zID
@@ -431,7 +454,8 @@ class Answer_Record(db.Model):
         db.session.add(result)
         db.session.commit()
 
-    # There is no reason what so ever you should need load or extract this class
+    # There is no reason what so ever you should
+    # need load or extract this class
     # Therefore I only added one for you to check for record and return Boolean
     @staticmethod
     def check(zID, sID):
@@ -443,16 +467,19 @@ class Answer_Record(db.Model):
             return True
 
 
-#Survey question is used to store questions in surveys to avoid situation where
-#certain questions are deleted from the question pool.
+# Survey question is used to store questions in
+# surveys to avoid situation where
+# certain questions are deleted from the question pool.
 class Survey_Question(db.Model):
 
     __tablename__ = "Survey_Question"
     sqID = db.Column("sqID", db.Integer, primary_key=True, autoincrement=True)
-    sID = db.Column("sID", db.Integer, db.ForeignKey('Survey.sID', ondelete='CASCADE'))
+    sID = db.Column("sID", db.Integer,
+                    db.ForeignKey('Survey.sID', ondelete='CASCADE'))
     qID = db.Column("qID", db.Integer)
-    qtype = db.Column("qtype", db.String(3), CheckConstraint('qtype == "Opt" or qtype == "Gne"'))
-    title = db.Column("title", db.String(80), nullable=False)
+    qtype = db.Column("qtype", db.String(3),
+                      CheckConstraint('qtype == "Opt" or qtype == "Gne"'))
+    title = db.Column("title", db.Text, nullable=False)
     cho_num = db.Column("cho_num", db.Integer, default=0, nullable=False)
     order = db.Column("order", db.Integer, nullable=False)
 
@@ -472,7 +499,7 @@ class Survey_Question(db.Model):
         choice = Choice.query.filter_by(qID=qID).all()
         db.session.add(result)
         db.session.commit()
-        if choice is None:
+        if len(choice) == 0:
             Result.new(result.sqID, None)
         else:
             for i in choice:
@@ -527,16 +554,19 @@ class Survey_Question(db.Model):
         db.session.commit()
 
 
-#Result not only contains the answer to questions used in the survey but it also
-#contains the content of the choices. In the case of text based question.
-#chID increment with each answer, but the cho_con is nothing, and the answer is
-#the respective string.
-#Derived entity
+# Result not only contains the answer to questions
+# used in the survey but it also contains the content of the choices.
+# In the case of text based question.
+# chID increment with each answer,
+# but the cho_con is nothing, and the answer is
+# the respective string.
+# Derived entity
 class Result(db.Model):
 
     __tablename__ = "Result"
     chID = db.Column("chID", db.Integer, primary_key=True, autoincrement=True)
-    sqID = db.Column("sqID", db.Integer, db.ForeignKey('Survey_Question.sqID', ondelete='CASCADE'))
+    sqID = db.Column("sqID", db.Integer,
+                     db.ForeignKey('Survey_Question.sqID', ondelete='CASCADE'))
     cho_con = db.Column("cho_con", db.Text)
     order = db.Column("order", db.Integer, nullable=False)
     answer = db.Column("answer", db.Text, default='', nullable=False)
@@ -595,6 +625,9 @@ class Result(db.Model):
             data.answer = data.answer + ' + '
             data.answer = eval(data.answer + answer)
         else:
-            data.answer = data.answer + 'औ'
-            data.answer = data.answer + answer
+            if len(data.answer) == 0:
+                data.answer = data.answer + answer
+            else:
+                data.answer = data.answer + 'औ'
+                data.answer = data.answer + answer
         db.session.commit()

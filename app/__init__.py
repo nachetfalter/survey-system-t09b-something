@@ -13,7 +13,8 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-# from flask_webpack import Webpack
+
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from config import config
 
@@ -22,14 +23,16 @@ bcrypt = Bcrypt()
 mail = Mail()
 moment = Moment()
 sqlalchemy = SQLAlchemy()
-# webpack = Webpack()
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
+scheduler = BackgroundScheduler()
 
 def initialize_app(config_name):
+
+    ''' initialize app instance - function factory '''
 
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config[config_name])
@@ -40,7 +43,6 @@ def initialize_app(config_name):
     moment.init_app(app)
     sqlalchemy.init_app(app)
     sqlalchemy.app = app
-    # webpack.init_app(app)
     login_manager.init_app(app)
 
     from .auth import auth as auth_blueprint
