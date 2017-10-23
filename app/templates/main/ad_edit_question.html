@@ -152,7 +152,7 @@
 
               <v-list-tile-title>[[option.title]]</v-list-tile-title>
 
-            <v-btn color="red" flat @click.native= rem(option.id)>Delete</v-btn>
+            <v-btn color="red" flat @click.native= rem(option.title)>Delete</v-btn>
 
           </v-list-tile>
         </v-list>
@@ -373,18 +373,22 @@
         },
         rem(n){
 
-          let counter = 0;
-
-         for(option in this.q_properties.added_option){
-
-            if (option.id === n){
-
-                this.q_properties.added_option.splice(counter,1);
-
-            }
-            counter++;
+        //   let counter = 0;
+         //
+        //  for(option in this.q_properties.added_option){
+         //
+        //     if (option.title == n){
+         //
+        //         this.q_properties.added_option.splice(counter,1);
+         //
+        //     }
+        //     counter++;
+        //  }
+         for (var i = 0; i < this.q_properties.added_option.length; i++) {
+           if (this.q_properties.added_option[i].title == n) {
+             this.q_properties.added_option.splice(i,1);
+           }
          }
-
 
         //   if(n == 1){
         //

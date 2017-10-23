@@ -93,7 +93,7 @@ def ad_question_edit(question_id):
 @authority_level_required('Admin')
 def ad_question_delete(question_id):
     ''' admin delete question '''
-    if Question.load(question_id) is None:
+    if Question.load(question_id) is not None:
         Question.delete(question_id)
         return url_for('.ad_question_pool')
     return jsonify({"Error": "Not Found"}), 404
@@ -177,7 +177,7 @@ def ad_survey_edit(survey_id):
 def ad_survey_delete(survey_id):
     ''' admin delete survey '''
     if Validator.survey_offline(survey_id):
-        if Survey.load(survey_id) is None:
+        if Survey.load(survey_id) is not None:
             Survey.delete(survey_id)
             Scheduler.remove_survey_schedule_job(survey_id)
             return url_for('.ad_survey_list')
