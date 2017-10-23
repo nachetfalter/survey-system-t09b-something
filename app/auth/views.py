@@ -14,10 +14,12 @@ from . import auth
 from .api import get_token_user
 
 
-# login page
-# only token is accepted
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+    '''
+    login page
+    only token is accepted
+    '''
     if request.is_json:
         json_data = request.json
         user = get_token_user(json_data.get('token'))
@@ -31,9 +33,11 @@ def login():
     return render_template('auth/login.html')
 
 
-# logout route
 @auth.route('/logout')
 @login_required
 def logout():
+    '''
+    logout route, may be considered as an api
+    '''
     logout_user()
     return url_for('.login')

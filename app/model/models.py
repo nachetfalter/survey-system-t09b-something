@@ -104,7 +104,14 @@ class User(db.Model, UserMixin):
                              filter_by(cID=i.cID).first(), 'sID', None))
             for i in dummy:
                 survey = []
-                if Answer_Record.check(self.zID, i) != 1:
+                if self.auth == 'Student':
+                    if Answer_Record.check(self.zID, i) != 1 and Survey.load(i).status == 1 or \
+                        Answer_Record.check(self.zID, i) == 1 and Survey.load(i).status == 2:
+                        survey.append(i)
+                elif self.auth == 'Staff':
+                    if Survey.load(i).status in [0, 2]:
+                        survey.append(i)
+                else:
                     survey.append(i)
             dic['sID'] = survey
             return dic
@@ -352,10 +359,10 @@ class Survey(db.Model):
                     db.ForeignKey('Course.cID', ondelete='CASCADE'))
     name = db.Column("name", db.Text, nullable=False)
     create_date = db.Column("create_date", db.DateTime,
-                            default=datetime.utcnow())
+                            default=datetime.now())
     start_date = db.Column("start_date", db.DateTime)
     update_date = db.Column("update_date", db.DateTime,
-                            default=datetime.utcnow())
+                            default=datetime.now())
     close_date = db.Column("close_date", db.DateTime)
     status = db.Column("status", db.Integer, default=0, nullable=False)
 
@@ -421,7 +428,7 @@ class Survey(db.Model):
         data.cID = cID
         data.start_date = start_date
         data.close_date = close_date
-        data.update_date = datetime.utcnow()
+        data.update_date = datetime.now()
         db.session.commit()
 
 
@@ -492,7 +499,7 @@ class Survey_Question(db.Model):
         choice = Choice.query.filter_by(qID=qID).all()
         db.session.add(result)
         db.session.commit()
-        if choice is None:
+        if len(choice) == 0:
             Result.new(result.sqID, None)
         else:
             for i in choice:
@@ -618,9 +625,9 @@ class Result(db.Model):
             data.answer = data.answer + ' + '
             data.answer = eval(data.answer + answer)
         else:
-        	if len(data.answer) == 0:
-        		data.answer = data.answer + answer
-    		else:
-	            data.answer = data.answer + 'औ'
-	            data.answer = data.answer + answer
+            if len(data.answer) == 0:
+                data.answer = data.answer + answer
+            else:
+                data.answer = data.answer + 'औ'
+                data.answer = data.answer + answer
         db.session.commit()

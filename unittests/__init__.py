@@ -1,5 +1,5 @@
 '''
-tests/__init__.py
+unittests/__init__.py
 - - - - - - -
 initial file for unittests
 - - - - - - -

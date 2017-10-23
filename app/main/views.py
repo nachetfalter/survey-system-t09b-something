@@ -14,40 +14,38 @@ from flask_login import login_required
 
 from . import main
 from .decorators import authority_level_required
+from .schedulers import Scheduler
 from .validators import Validator
-from ..model.models import Choice, Question, Survey, Result, Survey_Question
+from ..model.models import Choice, Question, Survey, Result, Survey_Question, Answer_Record
 
 
-# TODO implement data validators
-
-
-# index, temporarily redirect to login page automatically
 @main.route('/')
 def index():
+    ''' index, temporarily redirect to login page automatically '''
     return redirect(url_for('auth.login'))
 
 
-# admin dashboard
 @main.route('/admin')
 @login_required
 @authority_level_required('Admin')
 def admin_dashboard():
+    ''' admin dashboard '''
     return render_template('main/admin_dashboard.html')
 
 
-# admin view all questions
 @main.route('/admin/questions')
 @login_required
 @authority_level_required('Admin')
 def ad_question_pool():
+    ''' admin view all questions '''
     return render_template('main/ad_question_pool.html')
 
 
-# admin create question
 @main.route('/admin/questions/create', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
 def ad_question_create():
+    ''' admin create question '''
     if request.is_json and not Validator.question_new(request.json):
         abort(400)
     elif request.is_json:
@@ -62,11 +60,11 @@ def ad_question_create():
     return render_template('main/ad_create_question.html')
 
 
-# admin edit question
 @main.route('/admin/questions/edit/<int:question_id>', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
 def ad_question_edit(question_id):
+    ''' admin edit question '''
     if request.is_json and not Validator.question_edit(request.json):
         abort(400)
     elif request.is_json:
@@ -90,36 +88,36 @@ def ad_question_edit(question_id):
     return render_template('main/ad_edit_question.html')
 
 
-# admin delete question
 @main.route('/admin/questions/delete/<int:question_id>')
 @login_required
 @authority_level_required('Admin')
 def ad_question_delete(question_id):
+    ''' admin delete question '''
     Question.delete(question_id)
     return url_for('.ad_question_pool')
 
 
-# admin preview question
 @main.route('/admin/questions/view/<int:question_id>')
 @login_required
 @authority_level_required('Admin')
 def ad_question_view(question_id):
+    ''' admin preview question '''
     return render_template('main/ad_view_question.html')
 
 
-# admin view all surveys
 @main.route('/admin/surveys')
 @login_required
 @authority_level_required('Admin')
 def ad_survey_list():
+    ''' admin view all surveys '''
     return render_template('main/ad_survey_list.html')
 
 
-# admin create surveys and choose questions
 @main.route('/admin/surveys/create', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
 def ad_survey_create():
+    ''' admin create surveys and choose questions '''
     if request.is_json and not Validator.survey_new(request.json):
         abort(400)
     elif request.is_json:
@@ -132,20 +130,22 @@ def ad_survey_create():
                             [i+1 for i in range(len(json_data.get('question_id')))]))
         for ques in ques_all:
             Survey_Question.new(new_surv_id, ques[0], ques[1])
+        Scheduler.add_survey_schedule_job(new_surv_id)
         return url_for('.ad_survey_list')
     return render_template('main/ad_create_survey.html')
 
 
-# admin edit surveys and choose questions
 @main.route('/admin/surveys/edit/<int:survey_id>', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Admin')
 def ad_survey_edit(survey_id):
+    ''' admin edit surveys and add or delete questions '''
     if Validator.survey_offline(survey_id):
         if request.is_json and not Validator.survey_edit(request.json):
             abort(400)
         elif request.is_json:
             json_data = request.json
+            Scheduler.remove_survey_schedule_job(survey_id)
             Survey.update(survey_id,
                           json_data.get('course_id'),
                           json_data.get('survey_name'),
@@ -163,84 +163,87 @@ def ad_survey_edit(survey_id):
                     Survey_Question.new(survey_id, ques[1], ques[2])
                 else:
                     Survey_Question.update(ques[0], ques[2])
+            Scheduler.add_survey_schedule_job(survey_id)
             return url_for('.ad_survey_list')
         return render_template('main/ad_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403
 
 
-# admin delete survey
 @main.route('/admin/surveys/delete/<int:survey_id>')
 @login_required
 @authority_level_required('Admin')
 def ad_survey_delete(survey_id):
+    ''' admin delete survey '''
     if Validator.survey_offline(survey_id):
         Survey.delete(survey_id)
+        Scheduler.remove_survey_schedule_job(survey_id)
         return url_for('.ad_survey_list')
     return jsonify({"Error": "Immutable"}), 400
 
 
-# admin preview survey
 @main.route('/admin/surveys/view/<int:survey_id>')
 @login_required
 @authority_level_required('Admin')
 def ad_survey_view(survey_id):
+    ''' admin preview survey '''
     return render_template('main/ad_view_survey.html')
 
 
-# result root access forbidden
-@main.route('/result')
-def result():
-    abort(403)
-
-
-# display survey result
-@main.route('/result/<int:survey_id>')
+@main.route('/admin/metric')
 @login_required
-def result_survey(survey_id):
-    return render_template('main/view_survey_result.html')
+@authority_level_required('Admin')
+def ad_metric():
+    ''' admin review (all) results '''
+    return render_template('main/ad_metric.html')
 
 
-# display question result
-@main.route('/result/<int:survey_id>/<int:question_id>')
+@main.route('/admin/metric/<int:survey_id>')
 @login_required
-def result_question(survey_id, question_id):
-    return render_template('main/view_question_result.html')
+@authority_level_required('Admin')
+def ad_survey_metric(survey_id):
+    ''' admin review certain survey result '''
+    return render_template('main/ad_survey_metric.html')
 
 
-# staff dashboard
+@main.route('/admin/metric/<int:survey_id>/<int:question_id>')
+@login_required
+@authority_level_required('Admin')
+def ad_question_metric(survey_id, question_id):
+    ''' admin review certain question result (in certain survey) '''
+    return render_template('main/ad_question_metric.html')
+
+
 @main.route('/staff')
 @login_required
 @authority_level_required('Staff')
 def staff_dashboard():
+    ''' staff dashboard '''
     return render_template('main/staff_dashboard.html')
 
 
-# staff survey list
 @main.route('/staff/surveys')
 @login_required
 @authority_level_required('Staff')
 def sf_survey_list():
+    ''' staff survey list '''
     return render_template('main/sf_survey_list.html')
 
 
-# staff edit survey
 @main.route('/staff/surveys/edit/<int:survey_id>', methods=['GET', 'POST'])
 @login_required
 @authority_level_required('Staff')
 def sf_survey_edit(survey_id):
+    ''' staff edit survey '''
     if Validator.survey_offline(survey_id):
         if request.is_json and not Validator.survey_edit(request.json):
             abort(400)
         elif request.is_json:
             json_data = request.json
-            Survey.update(survey_id,
-                          json_data.get('course_id'),
-                          json_data.get('survey_name'),
-                          parser.parse(json_data.get('start_date')),
-                          parser.parse(json_data.get('close_date')))
+            ques_order = max([ques.order if ques.qtype == 'Gne' else 0 for ques in
+                              Survey_Question.query.filter_by(sID=survey_id).all()])
             ques_all = list(zip(json_data.get('survey_question_id'),
                                 json_data.get('question_id'),
-                                [i+1 for i in range(len(json_data.get('question_id')))]))
+                                [i+1+ques_order for i in range(len(json_data.get('question_id')))]))
             old_sq = set([sq.sqID for sq in Survey_Question.query.filter_by(sID=survey_id).all()])
             del_sq = old_sq - set(json_data.get('survey_question_id'))
             for sq_id in del_sq:
@@ -258,51 +261,79 @@ def sf_survey_edit(survey_id):
                     else:
                         abort(400)
             return url_for('.sf_survey_list')
-        return render_template('main/ad_edit_survey.html')
+        return render_template('main/sf_edit_survey.html')
     return jsonify({"Error": "Immutable"}), 403
 
 
-# staff preview survey
 @main.route('/staff/surveys/view/<int:survey_id>')
 @login_required
 @authority_level_required('Staff')
 def sf_survey_view(survey_id):
+    ''' staff preview survey '''
     return render_template('main/sf_view_survey.html')
 
 
-# student dashboard
+@main.route('/staff/metric')
+@login_required
+@authority_level_required('Staff')
+def sf_metric():
+    ''' staff review results '''
+    return render_template('main/sf_metric.html')
+
+
+@main.route('/staff/metric/<int:survey_id>')
+@login_required
+@authority_level_required('Staff')
+def sf_survey_metric(survey_id):
+    ''' staff review certain survey result '''
+    return render_template('main/sf_survey_metric.html')
+
+
+@main.route('/staff/metric/<int:survey_id>/<int:question_id>')
+@login_required
+@authority_level_required('Staff')
+def sf_question_metric(survey_id, question_id):
+    ''' staff review certain question result (in certain survey) '''
+    return render_template('main/sf_question_metric.html')
+
+
 @main.route('/student')
 @login_required
 @authority_level_required('Student')
 def student_dashboard():
+    ''' student dashboard '''
     return render_template('main/student_dashboard.html')
 
 
-# student survey list
 @main.route('/student/surveys')
 @login_required
 @authority_level_required('Student')
 def st_survey_list():
+    ''' student survey list '''
     return render_template('main/st_survey_list.html')
 
 
-# redirect to first question of the survey automatically
 @main.route('/student/surveys/<int:surv_id>')
+@login_required
+@authority_level_required('Student')
 def st_survey(surv_id):
+    ''' redirect to first question of the survey automatically '''
     first_ques_id = Survey_Question.query.filter_by(sID=surv_id, order=1).first().sqID
     return redirect(url_for('.st_survey_questions',
                             surv_id=surv_id,
                             ques_id=first_ques_id))
 
 
-# student do survey
 @main.route('/student/surveys/<int:surv_id>/<int:surv_ques_id>', methods=['GET', 'POST'])
 @login_required
+@authority_level_required('Student')
 def st_survey_questions(surv_id, surv_ques_id):
+    ''' student do survey '''
     if request.is_json and not Validator.survey_answer(surv_id, request.json):
         abort(400)
     elif request.is_json:
         json_data = request.json
+        Answer_Record.new(json_data.get('username'), surv_id)
         for i in range(len(json_data.get('question_id'))):
             Result.update_answer(json_data.get('choice_id')[i],
                                  json_data.get('answer')[i])
@@ -310,8 +341,33 @@ def st_survey_questions(surv_id, surv_ques_id):
     return render_template('main/st_do_survey.html')
 
 
-# show thank-you message to students
+@main.route('/student/metric')
+@login_required
+@authority_level_required('Student')
+def st_metric():
+    ''' student review results '''
+    return render_template('main/st_metric.html')
+
+
+@main.route('/student/metric/<int:survey_id>')
+@login_required
+@authority_level_required('Student')
+def st_survey_metric(survey_id):
+    ''' staff review certain survey result '''
+    return render_template('main/st_survey_metric.html')
+
+
+@main.route('/student/metric/<int:survey_id>/<int:question_id>')
+@login_required
+@authority_level_required('Student')
+def st_question_metric(survey_id, question_id):
+    ''' staff review certain question result (in certain survey) '''
+    return render_template('main/st_question_metric.html')
+
+
 @main.route('/student/surveys/thank-you')
 @login_required
+@authority_level_required('Student')
 def st_thank_you():
+    ''' show thank-you message to students '''
     return render_template('main/st_thank_you.html')
