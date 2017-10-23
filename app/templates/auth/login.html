@@ -1,18 +1,24 @@
+
+
+
 <!DOCTYPE html>
 <head>
    <title>Login</title>
+
    <style>
+
+
    #app {
-     font-family: 'Avenir', Helvetica, Arial, sans-serif;
-     -webkit-font-smoothing: antialiased;
-     -moz-osx-font-smoothing: grayscale;
-     text-align: center;
-     color: #2c3e50;
-     margin-top: 60px;
+
+
    }
 
-   h1, h2 {
-     font-weight: normal;
+   h5 {
+
+    font-size: 10pt;
+    text-align: center;
+    font-weight: bold;
+    color: black;
    }
 
    ul {
@@ -29,6 +35,7 @@
      color: #42b983;
    }
    </style>
+
    <script src="https://unpkg.com/vue/dist/vue.js"></script>
    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -37,18 +44,44 @@
    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
 </head>
+
 <body>
+
    <div id="app">
-      <div class = "container">
-         <v-form>
-            <h4> Welcome to the Survey System!</h4>
-            <h5> Please type your zID and password. </h5>
+    <v-app id="inspire">
+      <v-container id='back' fluid fill-height fixed>
+
+        <v-layout column>
+
+        <v-flex sm4 offset-sm4 fixed>
+
+        <v-card raised absolute id='form'>
+          <v-toolbar flat color ='cyan darken-3'>
+
+          <v-spacer></v-spacer>
+          <v-toolbar-title>Survey System</v-toolbar-title>
+          <v-spacer></v-spacer>
+
+          </v-toolbar-items>
+
+        </v-toolbar>
+
+            <br />
+
+            <!--<h5> Welcome to the Survey System!</h5>-->
+
+
+            <v-flex xs8 offset-sm2 fixed>
             <v-text-field
                label="zID"
                v-model="username"
                required
                placeholder="z1234567"
             ></v-text-field>
+            </v-flex>
+
+            <v-flex xs8 offset-sm2 fixed>
+
             <v-text-field
                label="Password"
                v-model="password"
@@ -56,19 +89,37 @@
                type="password"
                placeholder="***********"
             ></v-text-field>
-            <v-btn block @click.prevent="getFormValues()">Login</v-btn>
-            <v-alert info dismissible
+
+            <v-btn color = 'blue' block autofocus @keydown.prevent.enter.native="getFormValues()" @click.prevent="getFormValues()">Login</v-btn>
+            </v-flex>
+
+            <br/>
+
+       </v-card>
+       </v-flex>
+      </v-layout>
+
+  </v-container>
+
+  <v-card>
+  <v-alert info dismissible
                error
                v-model="alert"
                transition="scale-transition"
-             >
+               block
+              >
                Invalid username and password combination!
-             </v-alert>
-            <!--- <p id='errormsg'></p> -->
-         </v-form>
-      </div>
+      </v-alert>
+   </v-card>
+  </v-app>
   </div>
-  <script type="application/javascript">
+
+
+  <script>
+
+      document.getElementById("back").style.backgroundImage = "url('static/blue_background.jpg')";
+      document.getElementById("form").style.backgroundImage = "url('static/back_2.png')";
+
       var vm = new Vue({
          el: '#app',
          delimiters: ["[[", "]]"],
@@ -117,4 +168,5 @@
          }
      })
   </script>
+
 </body>

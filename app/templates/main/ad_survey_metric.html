@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <head>
-   <title>View Question</title>
-
-    <style>
-
-    hr.style14 {
-      border: 0;
-      height: 1px;
-      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-    }
-
-
-  </style>
+   <title>View Results</title>
 
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -25,7 +11,8 @@
    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
-
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js"></script>
+    <script src="https://unpkg.com/vue-chart-js"></script>
 </head>
 
 
@@ -81,11 +68,12 @@
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
 
-            <v-btn icon class="hidden-xs-only" :href= "'/admin/questions'">
+      <v-btn icon class="hidden-xs-only" :href= "'/admin/metric'">
             <v-icon>arrow_back</v-icon>
           </v-btn>
+
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-        <v-toolbar-title>View Question</v-toolbar-title>
+        <v-toolbar-title>View Result</v-toolbar-title>
       </v-toolbar>
 
     <!--           Dash board content                -->
@@ -94,65 +82,26 @@
         <br />
       <v-container xs2 elevation-3>
         <v-layout column>
+        <v-layout row>
           <v-flex xs12>
-
-            <br />
-            <h5>Question Information</h5>
-            <hr class="style14">
-            <br />
-
             <v-list>
-                <v-list-tile @click="">
-                  <v-list-tile-title>Question ID: </v-list-tile-title>
-                  <v-list-tile-sub-title>[[questionStruct.qID]]</v-list-tile-sub-title>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-list-tile @click="">
-                  <v-list-tile-title>Number of Choices: </v-list-tile-title>
-                  <v-list-tile-sub-title>[[questionStruct.cho_num]]</v-list-tile-sub-title>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-subheader>Choices</v-subheader>
-                <template v-for="i in questionStruct.cho_con">
-                  <v-list-tile @click="">
-                    <v-list-tile-sub-title>[[i]]</v-list-sub-title>
-                  </v-list-tile>
+              <v-subheader>Questions</v-subheader>
+              <v-divider></v-divider>
+                <template v-for="question in questions">
+                    <v-list-tile :href="'/admin/metric/'+[[page]]+'/'+[[question.sqID]]">
+                      <v-list-tile-sub-title>[[question.title]]</v-list-tile-sub-title>
+                    </v-list-tile>
                 </template>
-                <v-divider></v-divider>
-                <v-subheader>Question Title</v-subheader>
-                <v-list-tile @click="">
-                  <v-list-tile-sub-title>[[questionStruct.title]]</v-list-tile-sub-title>
-                </v-list-tile>
+
             </v-list>
+
           </v-flex>
 
-        <br />
-
-        <v-flex>
-        <v-btn class = "green" dark right :href="'/admin/questions/edit/'+questionStruct.qID" >Edit Question</v-btn>
-
-        <v-dialog v-model="dialog" lazy>
-          <v-btn class = "red darken-2" dark slot="activator" right >Delete</v-btn>
-          <v-card>
-            <v-card-title>
-              <div class="headline">Are you sure you want to delete this question?</div>
-            </v-card-title>
-            <v-card-text>Continuing will delete this question PERMANENTLY.</v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
-              <v-btn class="green--text darken-1" flat="flat" @click.native="deleteQues()">Delete</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-flex>
-
-
+        </v-layout>
       </v-container>
 
+      <br />
       </v-layout>
-
-
       </v-content>
 		</main>
       <v-footer app class = "cyan darken-3" >
@@ -164,7 +113,7 @@
   </div>
 
   <script>
-
+    Vue.use(VueChart.default)
     var app = new Vue({
 
       el: '#app',
@@ -177,11 +126,7 @@
 
           role: sessionStorage.role,
 
-          //TODO: the questions deleted will be noted in the backend ? or all needs to be handled by the front end
           msg:'Please select a question below.',
-
-          //TODO: type defines the type and state of a question, which 1 == normal state,2== genertic, 3== deleted optional question
-          questionStruct: [],
 
           drawer:false,
           dialog: false,
@@ -193,30 +138,44 @@
               { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
               { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
 
-
              ],
 
           right: null,
 
           url:'static/staff_profile.jpg',
-          page: ''
+          page: '',
+
+          questions: [],
+
       },
 
       mounted() {
-        var last = document.URL.substring(document.URL.lastIndexOf("/") + 1, document.URL.length);
-        this.page = last,
-        axios.get(
-    			'/api/question/'+last,
-    			{headers: {
-    				'Authorization': 'Bearer ' + sessionStorage.token,
-    			}}
-    		)
-    		.then((response) => {
-    			this.questionStruct = response.data
-          console.log(response.data)
-    			// Vue.set(vm.questionPool, response.data.questions)
-    		})
-    	},
+          var last = document.URL.substring(document.URL.lastIndexOf("/") + 1, document.URL.length);
+          this.page = last,
+          axios.get(
+      			'/api/survey/'+last,
+      			{headers: {
+      				'Authorization': 'Bearer ' + sessionStorage.token,
+      			}}
+      		)
+      		.then((response) => {
+      			this.surveyStruct = response.data
+            console.log(response.data)
+      			// Vue.set(vm.questionPool, response.data.questions)
+            for (var i = 0; i < this.surveyStruct.sqID.length; i++) {
+               axios.get(
+                 '/api/survey_question/'+this.surveyStruct.sqID[i],
+                 {headers: {
+           				'Authorization': 'Bearer ' + sessionStorage.token,
+           			}}
+               )
+               .then((response) => {
+                     this.questions.push(response.data);
+               })
+            }
+            console.log(this.questions);
+      		})
+      	},
       methods: {
          funcLogout: function (event) {
             sessionStorage.removeItem('token');
@@ -229,7 +188,6 @@
             })
          },
          deleteQues: function (event) {
-            // window.location.href = "/admin/questions/delete/" + this.questionStruct.qID;
             axios.get(
         			'/admin/questions/delete/'+ app.questionStruct.qID,
         			{headers: {
@@ -239,13 +197,9 @@
             .then((response) => {
               window.location.href = response.data
         		})
-         }
+         },
       }
-
-
-
-    })
-
+    });
 
   </script>
   </body>

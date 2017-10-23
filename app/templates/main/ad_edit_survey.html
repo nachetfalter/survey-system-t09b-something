@@ -1,6 +1,25 @@
+<!-- How to pass data to this page and render -->
+<!-- Cannot edit question from this page-->
+
+
+
 <!DOCTYPE html>
 <head>
    <title>Edit Survey</title>
+
+    <style>
+
+    hr.style14 {
+      border: 0;
+      height: 1px;
+      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+
+  </style>
 
    <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
@@ -29,7 +48,7 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img v-bind:src="url" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}" />
           </v-list-tile-avatar>
           <v-list-tile-content>
 
@@ -65,6 +84,9 @@
 
     <!--           Tool bar code and definition              -->
       <v-toolbar app class="cyan darken-3" dark fixed app>
+        <v-btn icon class="hidden-xs-only" :href= "'/admin/surveys/view/'+last">
+            <v-icon>arrow_back</v-icon>
+          </v-btn>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>Edit Survey</v-toolbar-title>
       </v-toolbar>
@@ -73,29 +95,36 @@
     <main>
 
       <v-content>
-        <v-container fill_height>
+        <br />
+        <v-container xs2 elevation-3 fill_height>
         <!-- message -->
         <v-layout column>
 
+        <br />
         <h5>[[msg]]</h5>
-        </br>
-        <hr>
+
+        <hr class="style14">
         </br>
 
         [[msg2]]
         <br>
 
+        <v-flex xs10 offset-sm1>
         <v-text-field
 
-            label= "Survey Name"
+            label= "Survey name"
             v-model="survey_get.name"
 
           ></v-text-field>
+        </v-flex>
 
+        <hr class="style14">
+        <br />
         [[msg3]]
         <br />
 
           <!-- will fix later -->
+          <v-flex xs10 offset-sm1>
           <v-select
               v-bind:items="course_get"
               v-model="buffer.survey_ID"
@@ -104,10 +133,14 @@
               single-line
               hide-details
             ></v-select>
+          </v-flex>
+          <br />
 
+        <hr class="style14">
+        <br />
         [[msg6]]
         <br>
-
+        <v-flex xs10 offset-sm1>
         <v-menu
           lazy
           :close-on-content-click="false"
@@ -136,7 +169,8 @@
             </template>
           </v-date-picker>
         </v-menu>
-
+      </v-flex>
+      <v-flex xs10 offset-sm1>
         <v-menu
           lazy
           :close-on-content-click="false"
@@ -157,10 +191,14 @@
           ></v-text-field>
           <v-time-picker v-model="buffer.s_time" autosave></v-time-picker>
         </v-menu>
+      </v-flex>
 
+        <br />
+        <hr class="style14">
         <br />
         [[msg7]]
 
+        <v-flex xs10 offset-sm1>
         <v-menu
           lazy
           :close-on-content-click="false"
@@ -174,7 +212,7 @@
         >
           <v-text-field
             slot="activator"
-            label="Start date"
+            label="End date"
             v-model="buffer.e_date"
             prepend-icon="event"
             readonly
@@ -204,29 +242,32 @@
         >
           <v-text-field
             slot="activator"
-            label="Start time"
+            label="End time"
             v-model="buffer.e_time"
             prepend-icon="access_time"
             readonly
           ></v-text-field>
           <v-time-picker v-model="buffer.e_time" autosave></v-time-picker>
         </v-menu>
-
+      </v-flex>
 
         <br>
+        <hr class="style14">
+
+        <br />
         [[msg4]]
         <br>
 
+        <v-list>
         <v-list-tile avatar v-for="question in buffer.added_question" v-bind:key="question">
-            <v-list-tile-content>
-              <v-list-tile-title>[[question.title]]</v-list-tile-title>
-            </v-list-tile-content>
+            <v-list-tile-title>[[question.title]]</v-list-tile-title>
             <v-btn color="red" flat @click.native= rem(question)>Delete</v-btn>
-            <v-list-tile-action>
-            </v-list-tile-action>
           </v-list-tile>
-          <br>
 
+        </v-list>
+
+          <br>
+            <v-flex xs3 offset-sm1>
             <v-dialog v-model="dialog" persistent width="50%">
 
             <v-btn color="primary" dark slot="activator">Add question</v-btn>
@@ -246,7 +287,7 @@
                       <br>
                         <v-select
                           label="Select"
-                          :items = "question_get"
+                          :items = "q_pool"
                           item-text = "title"
                           v-model="buffer.selected_q"
                           max-height="400"
@@ -271,32 +312,40 @@
                icon="new_releases"
                v-model="alert_pop"
                transition="scale-transition">
-               You have already added this question
+               Please check if question is already added
             </v-alert>
 
             </v-card>
 
           </v-dialog>
+        </v-flex>
+          <br />
+          <hr class="style14">
+          <br />
           <v-flex xs6>
           <v-btn color="blue" @click.native= check()>Submit Survey</v-btn>
           </v-flex>
-          <br />
-
-          <v-alert info dismissible
-          error
-          icon="new_releases"
-          v-model="alert_final"
-          transition="scale-transition">
-          Please check if all options are inputted correctly, note that today cannot be picked
-        </v-alert>
 
         </v-layout>
         </v-container>
+        <br />
+
       </v-content>
 
     </main>
 
+        <v-card>
+        <v-alert info dismissible
+          error
+          icon="new_releases"
+          v-model="alert_final"
+          transition="scale-transition">
+          Please check if all options are inputted correctly
+        </v-alert>
+      </v-card>
+
       <v-footer app class = "cyan darken-3" >
+        <v-spacer></v-spacer>
       <span class="white--text">T09B-Something</span>
       </v-footer>
 
@@ -321,7 +370,7 @@
 
         role: sessionStorage.role,
 
-        msg: 'You can edit the already added surveys on this page: ',
+        msg: 'Survey Edit',
 
         e_t_menu: false,
         e_d_menu:false,
@@ -336,7 +385,7 @@
         ],
         msg2: 'Survey name: ',
         msg3: 'Course ID:  ',
-        msg4: 'Please select questions to add to this survey: ',
+        msg4: 'Select Questions:  ',
         msg5: 'Edit questions: ',
         msg6: 'Start date: ',
         msg7: 'End date: ',
@@ -353,7 +402,7 @@
         survey_get: [],
         course_get: [],
         drawer:false,
-
+        q_pool: [],
         //icons to be displaced in drawer
         items: [
 
@@ -368,7 +417,7 @@
 
         right: null,
 
-        url:'staff_profile.jpg',
+        url:'static/staff_profile.jpg',
 
         //TODO: discussion
 
@@ -414,7 +463,12 @@
                }}
             )
             .then ((response) => {
-               this.question_get = response.data.questions;
+               for (var i = 0; i < response.data.questions.length; i++) {
+                  if (response.data.questions[i].qtype == "Gne") {
+                     this.q_pool.push(response.data.questions[i]);
+                  }
+               }
+               // this.question_get = response.data.questions;
             })
     },
     methods: {

@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <head>
-   <title>Survey List</title>
-
-    <style>
-
-    hr.style14 {
+   <title>Metric</title>
+<style>
+       hr.style14 {
       border: 0;
       height: 1px;
       background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
@@ -12,11 +10,9 @@
       background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
       background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
     }
-
-
   </style>
 
-   <!-- <link rel="stylesheet" href="{{ url_for('static',filename ='css/style.css',_external=True) }}"> -->
+   <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
    <!-- <script src="https://unpkg.com/vue"></script> -->
    <script src="https://unpkg.com/vue/dist/vue.js"></script>
@@ -84,7 +80,7 @@
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-        <v-toolbar-title>Edit Surveys</v-toolbar-title>
+        <v-toolbar-title>Metric</v-toolbar-title>
       </v-toolbar>
 
     <!--           Dash board content                -->
@@ -95,27 +91,28 @@
           <v-layout column>
         <!-- questions pool -->
             <br />
-            <h5>Please select a survey below to edit it.</h5>
+            <h5>Please select a survey below to view its results.</h5>
             <hr class="style14">
             <br />
 
               <v-layout row>
                 <v-flex xs12>
                   <v-list two-line>
-                    <div v-if="surveys[0] ==null">
+
+                  <div v-if="surveys[0] ==null">
 
                           <v-list-tile>
                           <v-list-tile-content>
                             <v-list-tile-title>Empty</v-list-tile-title>
                           </v-list-tile-content>
-                      </v-list-tile>                   
-
+                      </v-list-tile>
                     </div>
 
                     <div v-else>
+
                     <template v-for="survey in surveys">
                       <v-divider></v-divider>
-                      <v-list-tile :href="'/admin/surveys/view/'+[[survey.sID]]">
+                      <v-list-tile :href="'/admin/metric/'+[[survey.sID]]">
                           <v-list-tile-content>
                             <v-list-tile-title v-html="survey.sID"></v-list-tile-title>
                             <v-list-tile-sub-title v-html="survey.name"></v-list-tile-sub-title>
@@ -124,22 +121,16 @@
                       </v-list-tile>
                       <v-divider></v-divider>
                     </template>
-
-
-                   </div>
+                  </div>
 
                   </v-list>
                 </v-flex>
                 </v-layout>
               </v-layout>
 
-                <v-flex xs6>
-                      <v-btn color="primary" href="/admin/surveys/create">Add Survey</v-btn>
-                </v-flex>
-
               </v-container>
+              <br />
               </v-content>
-
 
       </main>
       <v-footer app class = "cyan darken-3">
@@ -169,7 +160,7 @@
 
         //TODO: type defines the type and state of a question, which 1 == normal state,2== genertic, 3== deleted optional question
         surveys: [],
-
+        mcq: '',
         drawer:false,
 
         //icons to be displaced in drawer
@@ -178,7 +169,7 @@
             { title: 'Dashboard', icon: 'dashboard',href:'/admin' },
             { title: 'Surveys', icon: 'book',href:'/admin/surveys' },
             { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
-            { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
+            { title: 'Metric', icon: 'assignment',href:'/admin/result' }
 
            ],
 

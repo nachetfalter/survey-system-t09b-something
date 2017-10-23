@@ -14,9 +14,10 @@
     }
 
 
-  </style>
+    </style>
 
-   <!-- <link rel="stylesheet" href="{{ url_for('static',filename ='css/style.css',_external=True) }}"> -->
+
+   <!-- <link rel="stylesheet" href="style.css"> -->
    <!-- <script src="https://vuejs.org/js/vue.js"></script> -->
    <!-- <script src="https://unpkg.com/vue"></script> -->
    <script src="https://unpkg.com/vue/dist/vue.js"></script>
@@ -42,6 +43,8 @@
       v-model="drawer"
       dark
       overflow
+      absolute
+      clipped
     >
       <v-list class="pa-1">
         <v-list-tile avatar>
@@ -50,9 +53,8 @@
           </v-list-tile-avatar>
           <v-list-tile-content>
 
-            <!-- back to login page -->
             [[user_ID]]
-            <small v-if= "role === '/admin'">Admin</small>
+            <small v-if= "role === '/student'">Student</small>
 
           </v-list-tile-content>
         </v-list-tile>
@@ -70,14 +72,13 @@
         </v-list-tile>
       </v-list>
 
-      <v-btn ripple
+  <v-btn ripple
              fixed
              bottom
              block
              color='red'
              dark
              @click = funcLogout()>Logout</v-btn>
-
     </v-navigation-drawer>
 
 
@@ -95,27 +96,27 @@
           <v-layout column>
         <!-- questions pool -->
             <br />
-            <h5>Please select a survey below to edit it.</h5>
+
+            <h5>Please select a survey below to see its results.</h5>
             <hr class="style14">
             <br />
 
               <v-layout row>
                 <v-flex xs12>
                   <v-list two-line>
-                    <div v-if="surveys[0] ==null">
+
+                  <div v-if="surveys[0] ==null">
 
                           <v-list-tile>
                           <v-list-tile-content>
                             <v-list-tile-title>Empty</v-list-tile-title>
                           </v-list-tile-content>
-                      </v-list-tile>                   
-
+                      </v-list-tile>
                     </div>
 
                     <div v-else>
                     <template v-for="survey in surveys">
-                      <v-divider></v-divider>
-                      <v-list-tile :href="'/admin/surveys/view/'+[[survey.sID]]">
+                      <v-list-tile :href="'/student/metric/'+[[survey.sID]]">
                           <v-list-tile-content>
                             <v-list-tile-title v-html="survey.sID"></v-list-tile-title>
                             <v-list-tile-sub-title v-html="survey.name"></v-list-tile-sub-title>
@@ -125,21 +126,15 @@
                       <v-divider></v-divider>
                     </template>
 
-
-                   </div>
-
+                    <div>
                   </v-list>
                 </v-flex>
                 </v-layout>
               </v-layout>
 
-                <v-flex xs6>
-                      <v-btn color="primary" href="/admin/surveys/create">Add Survey</v-btn>
-                </v-flex>
-
               </v-container>
+              <br />
               </v-content>
-
 
       </main>
       <v-footer app class = "cyan darken-3">
@@ -169,50 +164,68 @@
 
         //TODO: type defines the type and state of a question, which 1 == normal state,2== genertic, 3== deleted optional question
         surveys: [],
-
+        toLoad: [],
         drawer:false,
 
         //icons to be displaced in drawer
         items: [
 
-            { title: 'Dashboard', icon: 'dashboard',href:'/admin' },
-            { title: 'Surveys', icon: 'book',href:'/admin/surveys' },
-            { title: 'Questions ', icon: 'assignment', href:'/admin/questions' },
-            { title: 'Metric', icon: 'assignment',href:'/admin/metric' }
+            { title: 'Dashboard', icon: 'dashboard',href:'/student' },
+            { title: 'Surveys', icon: 'book',href:'/student/surveys' },
+            { title: 'Metric', icon: 'book', href: '/student/metric'}
 
            ],
+        logout_href: "#",
 
         right: null,
 
         url:'static/staff_profile.jpg'
 
-
     },
 
     mounted() {
   		axios.get(
-  			'/api/survey/',
+  			'/api/user/'+ sessionStorage.user,
   			{headers: {
   				'Authorization': 'Bearer ' + sessionStorage.token,
   			}}
   		)
   		.then((response) => {
-  			this.surveys = response.data.surveys
-        console.log(response.data)
+        for (var i = 0; i < response.data.sID.length; i++) {
+          app.toLoad.push(response.data.sID[i]);
+          console.log(app.toLoad);
+        }
+        for (var i = 0; i < app.toLoad.length; i++) {
+          // add if statement here to filter for surveys which are not avaliable to staff.
+          axios.get(
+            '/api/survey/'+ app.toLoad[i],
+            {headers: {
+      				'Authorization': 'Bearer ' + sessionStorage.token,
+      			}}
+          )
+          .then((response) => {
+            //CHANGE THIS LTAER
+            if (response.data.status === 2) {
+              app.surveys.push(response.data);
+           }
+          })
+        }
   		})
+
   	},
-   methods: {
-      funcLogout: function (event) {
-         sessionStorage.removeItem('token');
-         sessionStorage.removeItem('user');
-         axios.get(
-            '/logout',
-         )
-         .then((response) => {
-            window.location.href = response.data;
+    methods: {
+        funcLogout: function (event) {
+           sessionStorage.removeItem('token');
+           sessionStorage.removeItem('user');
+           axios.get(
+               '/logout',
+           )
+          .then((response) => {
+             window.location.href = response.data;
          })
-      }
-   }
+        }
+     },
+
 
 
   })
