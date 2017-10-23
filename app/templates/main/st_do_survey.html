@@ -50,7 +50,7 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}" />
+            <img src="{{ url_for('static', filename='img/admin_profile.png', _external=True) }}"  />
           </v-list-tile-avatar>
           <v-list-tile-content>
 
@@ -85,11 +85,6 @@
 
     <!--           Tool bar code and definition              -->
       <v-toolbar class="cyan darken-3" dark fixed app>
-
-      <v-btn icon class="hidden-xs-only" :href= "'/student/surveys'">
-            <v-icon>arrow_back</v-icon>
-          </v-btn>
-
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>Answer</v-toolbar-title>
       </v-toolbar>
@@ -214,7 +209,7 @@
         items: [
 
           { title: 'Home', icon: 'dashboard',href: '/student'},
-          { title: 'All Surveys', icon: 'book',href:'/student/surveys'},
+          { title: ' All Surveys', icon: 'book',href:'/student/surveys'},
           { title: 'Metrics', icon: 'book',href:'/student/metric'},
 
         ],

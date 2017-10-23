@@ -107,7 +107,6 @@
         <hr class="style14">
 
         <br />
-          [[msg2]]
           <v-flex xs10 offset-sm1>
           <v-text-field
             name="input-7-1"
@@ -120,11 +119,16 @@
 
         <hr class="style14">
         <br />
-        [[msg3]]
         <br>
 
-        <v-flex xs3 offset-sm1>
-        <v-select
+        <v-list>
+          <v-list-tile @click="">
+            <v-list-tile-title>Question Type</v-list-tile-title>
+            <v-list-tile-sub-title v-if="q_properties.q_type == 1">Multiple Choice</v-list-tile-sub-title>
+            <v-list-tile-sub-title v-if="q_properties.q_type == 2">Text</v-list-tile-sub-title>
+          </v-list-tile>
+        </v-list>
+        <!-- <v-select
 
               v-bind:items="q_type"
               item-text="title"
@@ -134,7 +138,7 @@
 
         ></v-select>
 
-      </v-flex>
+      </v-flex> -->
 
         </br>
 
@@ -148,7 +152,7 @@
 
               <v-list-tile-title>[[option.title]]</v-list-tile-title>
 
-            <v-btn color="red" flat @click.native= rem(option.ID)>Delete</v-btn>
+            <v-btn color="red" flat @click.native= rem(option.id)>Delete</v-btn>
 
           </v-list-tile>
         </v-list>
@@ -322,6 +326,11 @@
         for (var i = 0; i < app.q_struct.chID.length; i++) {
           app.q_properties.added_option[i] = {ID: app.q_struct.chID[i],title:app.q_struct.cho_con[i]};
         }
+        if (this.q_struct.cho_num == 0) {
+          this.q_properties.q_type = 2;
+        } else {
+          this.q_properties.q_type = 1;
+        }
       })
     },
     methods: {
@@ -364,49 +373,62 @@
         },
         rem(n){
 
-          if(n == 1){
+          let counter = 0;
 
-          this.q_properties.added_option.splice(0,1);
+         for(option in this.q_properties.added_option){
 
-          let counter = 1;
+            if (option.id === n){
 
-          for(x in this.q_properties.added_option){
-
-            this.q_properties.added_option[x] = {ID: -1,title:this.q_properties.added_option[x].title};
-
-            counter++;
-
-          }
-
-          }else{
-
-            //pop an element
-            this.q_properties.added_option.splice(n - 1,1);
-
-            let counter = 1;
-
-            for(x in this.q_properties.added_option){
-
-
-              let counter = 1;
-
-            for(x in this.q_properties.added_option){
-
-              this.q_properties.added_option[x] = {ID: counter,title:this.q_properties.added_option[x].title};
-
-            counter++;
+                this.q_properties.added_option.splice(counter,1);
 
             }
+            counter++;
+         }
 
-          }
 
-        }
+        //   if(n == 1){
+        //
+        //   this.q_properties.added_option.splice(0,1);
+        //
+        //   let counter = 1;
+        //
+        //   for(x in this.q_properties.added_option){
+        //
+        //     this.q_properties.added_option[x] = {ID: -1,title:this.q_properties.added_option[x].title};
+        //
+        //     counter++;
+        //
+        //   }
+        //
+        //   }else{
+        //
+        //     //pop an element
+        //     this.q_properties.added_option.splice(n - 1,1);
+        //
+        //     let counter = 1;
+        //
+        //     for(x in this.q_properties.added_option){
+        //
+        //
+        //       let counter = 1;
+        //
+        //     for(x in this.q_properties.added_option){
+        //
+        //       this.q_properties.added_option[x] = {ID: counter,title:this.q_properties.added_option[x].title};
+        //
+        //     counter++;
+        //
+        //     }
+        //
+        //   }
+        //
+        // }
 
       },
       check(){
 
         if(
-          (app.q_properties.q_type === "Multiple Choice" && app.q_properties.added_option[0] == null)
+          (app.q_properties.q_type === 1 && app.q_properties.added_option[0] == null)
 
           && (app.q_properties.curr_input_init == '' || app.q_properties.curr_input_init == null)
 
