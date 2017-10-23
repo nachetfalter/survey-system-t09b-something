@@ -31,7 +31,7 @@ A simple online system designed for COMP1531 based on Python3, Flask and Vuejs.
     SQLAlchemy==1.1.14
     Werkzeug==0.12.2
 
-### JavaScript Libraries (Through CDN)
+### JavaScript Libraries (CDN and self hosting)
 
     vue@2.5.2
     vuetify@0.16.9
